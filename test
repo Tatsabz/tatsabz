@@ -1,1 +1,12 @@
 
+<!DOCTYPE html>
+<html>
+<body>
+    <h1>تست</h1>
+    <button onclick="alert('کار میکنه!')">کلیک کن</button>
+    <p id="r"></p>
+<script>
+document.getElementById('r').innerText = 'جاوااسکریپت کار میکنه';
+</script>
+</body>
+</html>
