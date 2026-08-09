@@ -1,1 +1,1025 @@
 
+<!-- ========== شروع بخش ۱ از ۲۰ ========== -->
+<!DOCTYPE html>
+<html lang="fa" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+    <title>تات سبز | سامانه حضور و غیاب</title>
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <style>
+        *{margin:0;padding:0;box-sizing:border-box;}
+        :root{
+            --font-primary:'Vazirmatn','Segoe UI',system-ui,sans-serif;
+            --font-mono:'JetBrains Mono','Fira Code',monospace;
+            --radius-xs:8px;--radius-sm:12px;--radius-md:16px;--radius-lg:24px;--radius-xl:28px;
+            --shadow-sm:0 1px 3px rgba(0,0,0,0.04);--shadow-md:0 4px 16px rgba(0,0,0,0.05);
+            --shadow-lg:0 8px 30px rgba(0,0,0,0.06);--transition-smooth:0.25s cubic-bezier(0.4,0,0.2,1);
+            --header-font:20px;--header-pad:12px 16px;--tab-font:12px;--tab-pad:8px 16px;
+            --card-title-font:15px;--card-sub-font:12px;--card-pad:18px 20px;
+            --name-font:13px;--time-width:70px;--time-height:30px;--time-font:13px;
+            --btn-action-font:12px;--btn-action-pad:6px 14px;--btn-mgmt-font:11px;--btn-mgmt-pad:5px 10px;
+            --status-font:11px;--status-pad:5px 12px;--check-size:20px;
+            --badge-font:10px;--badge-pad:4px 10px;--input-font:14px;--input-pad:12px 16px;
+            --table-th-font:12px;--table-th-pad:10px 6px;--table-td-pad:8px 6px;
+            --row-height:40px;--row-gap:0px;
+            --color-header-bg:rgba(255,255,255,0.8);--color-title:#2d5a2d;
+            --color-tab-bg:rgba(240,245,240,0.6);--color-tab-text:#5a7a5a;
+            --color-tab-active-bg:rgba(90,138,90,0.1);--color-tab-active-text:#3a6a3a;--color-tab-active-border:rgba(90,138,90,0.3);
+            --color-card-bg:rgba(255,255,255,0.7);--color-card-border:rgba(100,140,100,0.15);
+            --color-table-th-bg:linear-gradient(135deg,#5a8a5a,#3a6a3a);--color-table-th-text:#fff;
+            --color-btn-primary-bg:linear-gradient(135deg,#5a8a5a,#3a6a3a);--color-btn-primary-text:#fff;
+            --color-btn-in-bg:linear-gradient(135deg,#4aac4a,#3a8a3a);--color-btn-out-bg:linear-gradient(135deg,#d04040,#b03030);
+            --color-status-completed-bg:rgba(60,180,60,0.1);--color-status-completed-text:#207020;
+            --color-status-inprogress-bg:rgba(60,140,200,0.1);--color-status-inprogress-text:#205080;
+            --color-status-late-bg:rgba(200,60,60,0.08);--color-status-late-text:#a03030;
+            --color-status-early-bg:rgba(60,60,200,0.08);--color-status-early-text:#3030a0;
+            --color-status-leave-bg:rgba(200,160,40,0.1);--color-status-leave-text:#8a6a20;
+            --color-status-absent-bg:rgba(200,60,60,0.1);--color-status-absent-text:#8a2020;
+            --color-hourly-leave:#8a6a20;
+            --page-bg:linear-gradient(135deg,#f0f4f0 0%,#e8efe8 100%);
+            --text-color:#1e293b;
+        }
+        body{font-family:var(--font-primary);background:var(--page-bg);color:var(--text-color);min-height:100vh;direction:rtl;line-height:1.6;-webkit-tap-highlight-color:transparent;}
+        #loginScreen{min-height:100vh;display:flex;align-items:center;justify-content:center;background:linear-gradient(160deg,#e0f0e0 0%,#f0f8f0 30%,#e8f0e8 60%,#d8e8d8 100%);padding:20px;}
+        .login-box{background:rgba(255,255,255,0.85);backdrop-filter:blur(25px);border:1px solid rgba(100,140,100,0.2);border-radius:var(--radius-xl);padding:40px 32px;width:100%;max-width:440px;box-shadow:var(--shadow-lg);}
+        .login-logo{font-size:64px;text-align:center;margin-bottom:8px;}
+        .login-title{font-size:28px;font-weight:800;text-align:center;color:var(--color-title);margin-bottom:4px;}
+        .login-sub{font-size:14px;color:#5a7a5a;text-align:center;margin-bottom:28px;}
+<!-- ========== پایان بخش ۱ از ۲۰ ========== -->
+<!-- ========== شروع بخش ۲ از ۲۰ ========== -->
+        .field{margin-bottom:16px;}
+        .field label{display:block;font-size:13px;font-weight:600;color:#3a5a3a;margin-bottom:6px;text-align:right;}
+        .field input,.field select,.field textarea{width:100%;padding:var(--input-pad);border:2px solid #c8d8c8;border-radius:var(--radius-sm);font-size:var(--input-font);font-family:var(--font-primary);background:rgba(255,255,255,0.7);color:#1e293b;transition:var(--transition-smooth);text-align:center;outline:none;}
+        .field input:focus,.field select:focus,.field textarea:focus{border-color:#5a8a5a;box-shadow:0 0 0 3px rgba(90,138,90,0.1);background:rgba(255,255,255,0.95);}
+        .field textarea{text-align:right;min-height:70px;resize:vertical;}
+        .btn{padding:12px 20px;border-radius:var(--radius-sm);border:none;font-size:14px;font-weight:600;font-family:var(--font-primary);cursor:pointer;transition:var(--transition-smooth);display:inline-flex;align-items:center;justify-content:center;gap:6px;white-space:nowrap;}
+        .btn-primary{background:var(--color-btn-primary-bg);color:var(--color-btn-primary-text);box-shadow:0 4px 12px rgba(58,106,58,0.3);width:100%;}
+        .btn-primary:hover{transform:translateY(-2px);box-shadow:0 6px 20px rgba(58,106,58,0.4);}
+        .btn-ghost{background:rgba(240,245,240,0.8);color:#3a5a3a;border:1px solid #c8d8c8;}
+        .btn-danger{background:rgba(200,60,60,0.1);color:#a03030;border:1px solid rgba(200,60,60,0.2);}
+        .btn-sm{padding:6px 12px;font-size:12px;border-radius:var(--radius-xs);}
+        .login-error{display:none;background:rgba(200,60,60,0.08);color:#a03030;padding:12px;border-radius:var(--radius-sm);font-size:13px;margin:16px 0;border:1px solid rgba(200,60,60,0.2);text-align:center;}
+        .login-error.show{display:block;}
+        #app{max-width:100%;min-height:100vh;display:none;flex-direction:column;}
+        #app.active{display:flex;}
+        header.topbar{position:sticky;top:0;z-index:50;background:var(--color-header-bg);backdrop-filter:blur(30px);padding:var(--header-pad);border-bottom:1px solid rgba(100,140,100,0.15);box-shadow:0 2px 8px rgba(0,0,0,0.03);}
+        .topbar-row{display:flex;align-items:center;justify-content:space-between;gap:12px;}
+        .app-title{font-size:var(--header-font);font-weight:800;color:var(--color-title);}
+        .top-tabs{display:flex;gap:6px;margin-top:10px;overflow-x:auto;padding:4px 0;scrollbar-width:none;}
+        .top-tabs::-webkit-scrollbar{display:none;}
+        .top-tabs button{padding:var(--tab-pad);border:2px solid transparent;border-radius:var(--radius-lg);background:var(--color-tab-bg);color:var(--color-tab-text);font-family:var(--font-primary);font-size:var(--tab-font);font-weight:600;cursor:pointer;white-space:nowrap;transition:var(--transition-smooth);}
+        .top-tabs button.active{background:var(--color-tab-active-bg);color:var(--color-tab-active-text);border-color:var(--color-tab-active-border);}
+        main{flex:1;padding:20px 16px 100px;}
+        .view{display:none;animation:fadeSlideIn 0.3s ease;}
+        .view.active{display:block;}
+        @keyframes fadeSlideIn{from{opacity:0;transform:translateY(12px);}to{opacity:1;transform:translateY(0);}}
+        .card{background:var(--color-card-bg);backdrop-filter:blur(20px);border:1px solid var(--color-card-border);border-radius:var(--radius-lg);padding:var(--card-pad);margin-bottom:14px;box-shadow:var(--shadow-sm);}
+        .card-title{font-size:var(--card-title-font);font-weight:700;color:#1e293b;}
+        .card-sub{font-size:var(--card-sub-font);color:#5a7a5a;margin-top:4px;}
+        .badge{font-size:var(--badge-font);font-weight:700;padding:var(--badge-pad);border-radius:20px;display:inline-block;}
+        .badge.leave{background:rgba(200,160,40,0.15);color:#8a6a20;}
+        .badge.absent{background:rgba(200,60,60,0.1);color:#8a2020;}
+        .badge.pending{background:rgba(60,140,200,0.1);color:#205080;}
+        .badge.approved{background:rgba(60,180,60,0.1);color:#207020;}
+        .badge.rejected{background:rgba(200,60,60,0.1);color:#8a2020;}
+        .status-title{font-size:var(--status-font);font-weight:700;padding:var(--status-pad);border-radius:20px;display:inline-block;white-space:nowrap;}
+        .status-title.not-entered{background:rgba(220,220,220,0.8);color:#888;}
+        .status-title.inprogress{background:var(--color-status-inprogress-bg);color:var(--color-status-inprogress-text);}
+        .status-title.completed{background:var(--color-status-completed-bg);color:var(--color-status-completed-text);}
+        .status-title.leave{background:var(--color-status-leave-bg);color:var(--color-status-leave-text);}
+        .status-title.absent{background:var(--color-status-absent-bg);color:var(--color-status-absent-text);}
+        .status-title.late{background:var(--color-status-late-bg);color:var(--color-status-late-text);}
+        .status-title.early{background:var(--color-status-early-bg);color:var(--color-status-early-text);}
+        .personnel-table-wrap{max-height:60vh;overflow-y:auto;border-radius:var(--radius-lg);border:1px solid rgba(100,140,100,0.2);background:rgba(255,255,255,0.5);backdrop-filter:blur(15px);}
+        .personnel-table{width:100%;border-collapse:collapse;font-size:13px;}
+        .personnel-table th{background:var(--color-table-th-bg);color:var(--color-table-th-text);padding:var(--table-th-pad);font-size:var(--table-th-font);font-weight:700;position:sticky;top:0;z-index:10;white-space:nowrap;}
+        .personnel-table td{padding:var(--table-td-pad);border-bottom:1px solid rgba(100,140,100,0.1);vertical-align:middle;text-align:center;min-height:var(--row-height);}
+        .personnel-table tr:hover{background:rgba(90,138,90,0.03);}
+        .name-cell{font-weight:700;text-align:right!important;padding-right:12px!important;font-size:var(--name-font);}
+        .time-input{width:var(--time-width);height:var(--time-height);padding:6px 4px;border:2px solid #c8d8c8;border-radius:var(--radius-xs);font-size:var(--time-font);font-family:var(--font-mono);background:rgba(255,255,255,0.7);color:#1e293b;font-weight:600;direction:ltr;text-align:center;transition:var(--transition-smooth);}
+        .time-input:focus{outline:none;border-color:#5a8a5a;}
+        .time-input:disabled{opacity:0.5;background:#f0f4f0;}
+        .date-input{width:100%;font-family:var(--font-primary);font-size:var(--input-font);direction:rtl;text-align:center;padding:var(--input-pad);border:2px solid #c8d8c8;border-radius:var(--radius-sm);background:rgba(255,255,255,0.7);color:#1e293b;cursor:pointer;transition:var(--transition-smooth);outline:none;}
+        .date-input:focus{border-color:#5a8a5a;}
+        .btn-action{padding:var(--btn-action-pad);border-radius:var(--radius-xs);border:none;font-size:var(--btn-action-font);font-weight:700;cursor:pointer;margin:2px;transition:var(--transition-smooth);font-family:var(--font-primary);}
+        .btn-action-in{background:var(--color-btn-in-bg);color:white;}
+        .btn-action-out{background:var(--color-btn-out-bg);color:white;}
+        .btn-action-delete{background:linear-gradient(135deg,#6a7a6a,#4a5a4a);color:white;}
+        .btn-action:disabled{opacity:0.4;cursor:not-allowed;}
+        .btn-mgmt{padding:var(--btn-mgmt-pad);border-radius:var(--radius-xs);border:1px solid rgba(100,140,100,0.3);font-size:var(--btn-mgmt-font);font-weight:700;cursor:pointer;margin:2px;background:rgba(255,255,255,0.7);color:#3a5a3a;transition:var(--transition-smooth);font-family:var(--font-primary);}
+        .btn-mgmt.leave{background:rgba(200,160,40,0.15);color:#8a6a20;}
+        .btn-mgmt.absent{background:rgba(200,60,60,0.1);color:#8a2020;}
+        .btn-mgmt.clear{background:rgba(60,140,200,0.1);color:#205080;}
+        .btn-mgmt.approve{background:rgba(60,180,60,0.15);color:#207020;}
+        .btn-mgmt.reject{background:rgba(200,60,60,0.1);color:#8a2020;}
+        .manager-check{width:var(--check-size);height:var(--check-size);cursor:pointer;accent-color:#5a8a5a;}
+        .toast{position:fixed;bottom:100px;left:50%;transform:translateX(-50%);background:rgba(30,40,30,0.9);color:white;padding:12px 28px;border-radius:30px;font-size:14px;z-index:200;opacity:0;transition:var(--transition-smooth);pointer-events:none;}
+        .toast.show{opacity:1;transform:translateX(-50%) translateY(-10px);}
+        .hamburger-menu{position:relative;}
+        .hamburger-btn{background:rgba(240,245,240,0.6);border:1px solid rgba(100,140,100,0.2);width:40px;height:40px;border-radius:var(--radius-sm);display:flex;flex-direction:column;align-items:center;justify-content:center;gap:5px;cursor:pointer;}
+        .hamburger-btn span{width:22px;height:2.5px;background:#3a5a3a;border-radius:3px;}
+        .hamburger-dropdown{display:none;position:absolute;top:calc(100% + 8px);left:0;background:rgba(255,255,255,0.95);border:1px solid rgba(100,140,100,0.2);border-radius:var(--radius-lg);box-shadow:var(--shadow-lg);min-width:220px;z-index:200;padding:8px 0;}
+        .hamburger-dropdown.show{display:block;}
+        .hamburger-dropdown .menu-item{display:flex;align-items:center;gap:10px;padding:10px 18px;background:none;border:none;font-size:13px;color:#2a3a2a;cursor:pointer;font-family:var(--font-primary);width:100%;transition:var(--transition-smooth);text-align:right;}
+        .hamburger-dropdown .menu-item:hover{background:rgba(90,138,90,0.05);}
+        .sheet-overlay{position:fixed;inset:0;background:rgba(10,20,10,0.5);backdrop-filter:blur(4px);z-index:100;display:none;align-items:flex-end;justify-content:center;}
+        .sheet-overlay.active{display:flex;}
+        .sheet{background:rgba(255,255,255,0.95);backdrop-filter:blur(30px);width:100%;max-width:560px;border-radius:28px 28px 0 0;max-height:90vh;overflow-y:auto;padding:8px 20px 24px;animation:sheetUp 0.3s ease;position:relative;}
+        @keyframes sheetUp{from{transform:translateY(60px);opacity:0;}to{transform:translateY(0);opacity:1;}}
+        .sheet-handle{width:40px;height:5px;background:#b8c8b8;border-radius:3px;margin:12px auto 16px;}
+        .sheet .close-btn{position:absolute;top:14px;left:14px;width:32px;height:32px;border-radius:50%;border:none;background:rgba(240,245,240,0.8);cursor:pointer;font-size:18px;color:#5a7a5a;display:flex;align-items:center;justify-content:center;}
+        .settings-card{background:rgba(255,255,255,0.5);backdrop-filter:blur(15px);border:1px solid rgba(100,140,100,0.15);border-radius:var(--radius-lg);padding:20px;margin-bottom:16px;}
+        .settings-card .field-row{display:flex;gap:12px;flex-wrap:wrap;justify-content:center;margin-top:10px;}
+        .section-label{font-size:13px;font-weight:700;color:#5a7a5a;margin-top:16px;border-bottom:2px solid rgba(90,138,90,0.2);padding-bottom:6px;}
+        .detail-item{padding:8px 0;border-bottom:1px solid rgba(100,140,100,0.1);font-size:13px;display:flex;justify-content:space-between;}
+        .leave-request-card{background:rgba(255,255,255,0.6);border:1px solid rgba(100,140,100,0.15);border-radius:var(--radius-sm);padding:12px;margin-bottom:8px;}
+        .calendar-container{position:relative;display:inline-block;width:100%;}
+        .calendar-popup{position:absolute;z-index:1000;background:rgba(255,255,255,0.98);border:1px solid rgba(90,138,90,0.3);border-radius:var(--radius-md);padding:12px;box-shadow:var(--shadow-lg);display:none;width:280px;top:100%;right:0;margin-top:8px;}
+        .calendar-popup.show{display:block;}
+        .calendar-popup table{width:100%;border-collapse:collapse;font-size:12px;}
+        .calendar-popup th{background:linear-gradient(135deg,#5a8a5a,#3a6a3a);color:white;padding:6px 2px;text-align:center;font-size:10px;}
+        .calendar-popup td{padding:6px;text-align:center;cursor:pointer;border-radius:6px;font-size:12px;transition:var(--transition-smooth);}
+        .calendar-popup td:hover{background:rgba(90,138,90,0.1);}
+        .calendar-popup td.today{background:rgba(200,160,40,0.2);font-weight:700;}
+        .calendar-popup td.selected{background:linear-gradient(135deg,#5a8a5a,#3a6a3a);color:white;}
+        .calendar-popup td.other-month{color:#b8c8b8;}
+        .calendar-popup .cal-nav{display:flex;justify-content:space-between;align-items:center;margin-bottom:8px;}
+        .calendar-popup .cal-nav button{background:rgba(240,245,240,0.8);border:1px solid #c8d8c8;padding:4px 12px;border-radius:6px;cursor:pointer;font-size:14px;font-family:var(--font-primary);}
+        .calendar-popup .cal-nav select{background:white;border:1px solid #c8d8c8;padding:4px 8px;border-radius:6px;font-family:var(--font-primary);font-size:12px;cursor:pointer;}
+        .color-grid{display:grid;grid-template-columns:1fr 1fr;gap:8px;}
+        .color-item{display:flex;align-items:center;gap:8px;font-size:11px;}
+        .color-picker-wrapper{position:relative;width:36px;height:36px;border-radius:50%;border:2px solid #c8d8c8;cursor:pointer;overflow:hidden;flex-shrink:0;}
+        .color-picker-wrapper input[type="color"]{position:absolute;top:-8px;left:-8px;width:52px;height:52px;border:none;padding:0;cursor:pointer;opacity:0;}
+        .color-picker-circle{width:100%;height:100%;border-radius:50%;}
+        .theme-grid{display:grid;grid-template-columns:1fr 1fr;gap:8px;}
+        .theme-item{padding:12px;border-radius:14px;cursor:pointer;text-align:center;border:2px solid transparent;transition:all 0.2s;}
+        .theme-item:hover{transform:translateY(-2px);box-shadow:0 4px 12px rgba(0,0,0,0.1);}
+        .theme-item.active{border-color:#3a6a3a;box-shadow:0 0 0 3px rgba(58,106,58,0.2);}
+        .theme-dots{display:flex;gap:4px;justify-content:center;margin-top:8px;}
+        .theme-dot{width:16px;height:16px;border-radius:50%;border:1px solid rgba(0,0,0,0.1);}
+        @media(max-width:640px){.time-input{width:52px;font-size:11px;}.btn-action{padding:4px 8px;font-size:10px;}.btn-mgmt{padding:3px 7px;font-size:10px;}.calendar-popup{width:240px;}}
+    </style>
+</head>
+<!-- ========== پایان بخش ۲ از ۲۰ ========== -->
+<!-- ========== شروع بخش ۳ از ۲۰ ========== -->
+<body>
+    <div id="loginScreen">
+        <div class="login-box">
+            <div class="login-logo">🌿</div>
+            <div class="login-title">تات سبز</div>
+            <div class="login-sub">سامانه هوشمند حضور و غیاب</div>
+            <div class="field"><label>📧 ایمیل</label><input id="loginEmail" type="email" value="admin@tatsabz.com"></div>
+            <div class="field"><label>🔑 رمز عبور</label><input id="loginPassword" type="password" value="admin123"></div>
+            <div class="login-error" id="loginError"></div>
+            <button class="btn btn-primary" id="loginBtn">🚀 ورود به سامانه</button>
+        </div>
+    </div>
+    <div id="app">
+        <header class="topbar">
+            <div class="topbar-row">
+                <div class="app-title">🌿 تات سبز</div>
+                <div style="display:flex;align-items:center;gap:10px;">
+                    <span style="font-size:10px;padding:5px 12px;border-radius:20px;background:rgba(90,138,90,0.08);color:#3a6a3a;font-weight:600;" id="headerRole">—</span>
+                    <span id="headerName" style="font-size:13px;font-weight:600;color:#2a3a2a;"></span>
+                    <div class="hamburger-menu">
+                        <button class="hamburger-btn" id="hamburgerBtn"><span></span><span></span><span></span></button>
+                        <div class="hamburger-dropdown" id="hamburgerDropdown">
+                            <button class="menu-item" data-view="dashboard">🏠 داشبورد</button>
+                            <button class="menu-item" data-view="register">🛡️ ثبت تردد</button>
+                            <button class="menu-item" data-view="manager">👤 پنل مدیریت</button>
+                            <button class="menu-item" data-view="mylogs">📋 سوابق من</button>
+                            <button class="menu-item" data-view="leaverequests">📝 درخواست مرخصی</button>
+                            <hr style="margin:6px 14px;border-color:rgba(100,140,100,0.2);">
+                            <button class="menu-item" data-view="personnel">👥 مدیریت پرسنل</button>
+                            <button class="menu-item" data-view="users">👤 مدیریت کاربران</button>
+                            <button class="menu-item" data-view="settings">⚙️ تنظیمات</button>
+                            <button class="menu-item" data-view="reports">📊 گزارش‌گیری</button>
+                            <hr style="margin:6px 14px;border-color:rgba(100,140,100,0.2);">
+                            <button class="menu-item" id="exportDataMenuBtn">💾 پشتیبان‌گیری</button>
+                            <button class="menu-item" id="importDataMenuBtn">📥 بازیابی</button>
+                            <button class="menu-item" id="changePassMenuBtn">🔑 تغییر رمز</button>
+                            <button class="menu-item" id="resetDataMenuBtn" style="color:#c04040;">⚠️ بازنشانی</button>
+                            <hr style="margin:6px 14px;border-color:rgba(100,140,100,0.2);">
+                            <button class="menu-item" id="logoutMenuBtn" style="color:#c04040;">🚪 خروج از حساب</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="top-tabs" id="topTabs">
+                <button data-view="dashboard" class="active">🏠 خانه</button>
+                <button data-view="register">🛡️ ثبت</button>
+                <button data-view="manager">👤 مدیریت</button>
+                <button data-view="mylogs">📋 سوابق</button>
+                <button data-view="leaverequests">📝 مرخصی</button>
+            </div>
+        </header>
+        <main>
+<!-- ========== پایان بخش ۳ از ۲۰ ========== -->
+<!-- ========== شروع بخش ۴ از ۲۰ ========== -->
+            <section class="view active" id="view-dashboard">
+                <div class="card" style="background:rgba(90,138,90,0.06);border-color:rgba(90,138,90,0.2);"><div class="card-title" style="font-size:18px;color:#3a6a3a;">🌿 خوش آمدید</div><div class="card-sub" id="dashboardWelcome">—</div></div>
+                <div style="display:flex;gap:8px;flex-wrap:wrap;justify-content:center;align-items:center;margin-bottom:12px;">
+                    <div style="flex:1;max-width:220px;"><label style="font-size:12px;font-weight:600;color:#5a7a5a;">📅 تاریخ</label><div class="calendar-container"><input type="text" id="dashboardDate" class="date-input" placeholder="1403/06/15"><div class="calendar-popup" id="cal_dashboardDate"></div></div></div>
+                    <button class="btn btn-ghost btn-sm" id="dashboardTodayBtn" style="margin-top:20px;">📅 امروز</button>
+                    <button class="btn btn-ghost btn-sm" id="dashboardPrevBtn" style="margin-top:20px;">◀</button>
+                    <button class="btn btn-ghost btn-sm" id="dashboardNextBtn" style="margin-top:20px;">▶</button>
+                </div>
+                <div class="card"><div class="card-title">📊 خلاصه وضعیت</div><div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(100px,1fr));gap:8px;margin-top:10px;" id="dashboardStats"></div></div>
+            </section>
+            <section class="view" id="view-register">
+                <div class="card" style="background:rgba(90,138,90,0.04);border-color:rgba(90,138,90,0.15);"><div class="card-title">🛡️ ثبت ورود و خروج</div></div>
+                <div style="display:flex;gap:8px;flex-wrap:wrap;justify-content:center;align-items:center;margin-bottom:12px;">
+                    <div style="flex:1;max-width:220px;"><label style="font-size:12px;font-weight:600;color:#5a7a5a;">📅 تاریخ</label><div class="calendar-container"><input type="text" id="registerDate" class="date-input" placeholder="1403/06/15"><div class="calendar-popup" id="cal_registerDate"></div></div></div>
+                    <button class="btn btn-ghost btn-sm" id="todayDateBtn" style="margin-top:20px;">📅 امروز</button>
+                    <button class="btn btn-ghost btn-sm" id="prevDateBtn" style="margin-top:20px;">◀</button>
+                    <button class="btn btn-ghost btn-sm" id="nextDateBtn" style="margin-top:20px;">▶</button>
+                </div>
+                <div class="personnel-table-wrap"><table class="personnel-table" id="registerTable"><thead><tr><th>#</th><th>نام</th><th>ورود</th><th>خروج</th><th>عملیات</th></tr></thead><tbody id="registerTableBody"></tbody></table></div>
+            </section>
+            <section class="view" id="view-manager">
+                <div class="card" style="background:rgba(200,160,40,0.06);border-color:rgba(200,160,40,0.2);"><div class="card-title">👤 پنل مدیریت و بررسی</div></div>
+                <div style="display:flex;gap:8px;flex-wrap:wrap;justify-content:center;align-items:center;margin-bottom:12px;">
+                    <div style="flex:1;max-width:220px;"><label style="font-size:12px;font-weight:600;color:#5a7a5a;">📅 تاریخ</label><div class="calendar-container"><input type="text" id="managerDate" class="date-input" placeholder="1403/06/15"><div class="calendar-popup" id="cal_managerDate"></div></div></div>
+                    <button class="btn btn-ghost btn-sm" id="managerTodayBtn" style="margin-top:20px;">📅 امروز</button>
+                    <button class="btn btn-ghost btn-sm" id="managerPrevBtn" style="margin-top:20px;">◀</button>
+                    <button class="btn btn-ghost btn-sm" id="managerNextBtn" style="margin-top:20px;">▶</button>
+                </div>
+                <div class="card" style="background:rgba(60,140,200,0.04);border-color:rgba(60,140,200,0.15);margin-bottom:12px;"><div class="card-title">📝 درخواست‌های مرخصی در انتظار تأیید</div><div id="pendingLeaveRequests"></div></div>
+                <div class="card" style="background:rgba(200,160,40,0.04);border-color:rgba(200,160,40,0.15);margin-bottom:12px;"><div class="card-title">📊 وضعیت مرخصی‌های امروز</div><div id="todayLeaveStatus"></div></div>
+                <div class="personnel-table-wrap"><table class="personnel-table" id="managerTable"><thead><tr><th>بررسی</th><th>نام</th><th>ورودها</th><th>خروج‌ها</th><th>وضعیت</th><th>دکمه‌ها</th></tr></thead><tbody id="managerTableBody"></tbody></table></div>
+            </section>
+<!-- ========== پایان بخش ۴ از ۲۰ ========== -->
+<!-- ========== شروع بخش ۵ از ۲۰ ========== -->
+            <section class="view" id="view-mylogs">
+                <div class="card" style="background:rgba(60,140,200,0.04);border-color:rgba(60,140,200,0.15);"><div class="card-title">📋 سوابق تردد</div></div>
+                <div style="display:flex;gap:8px;flex-wrap:wrap;justify-content:center;align-items:center;margin-bottom:12px;">
+                    <div style="flex:1;min-width:160px;max-width:200px;"><label style="font-size:11px;font-weight:600;color:#5a7a5a;">👤 پرسنل</label><div style="position:relative;"><select id="mylogsPersonnelSelect" class="date-input" style="padding:8px 12px;font-size:12px;"><option value="">— انتخاب کنید —</option></select></div></div>
+                    <div style="flex:1;min-width:100px;max-width:130px;"><label style="font-size:11px;font-weight:600;color:#5a7a5a;">📅 سال</label><select id="mylogsYearFilter" class="date-input" style="padding:8px 12px;font-size:12px;"><option value="">همه</option></select></div>
+                    <div style="flex:1;min-width:100px;max-width:130px;"><label style="font-size:11px;font-weight:600;color:#5a7a5a;">📅 ماه</label><select id="mylogsMonthFilter" class="date-input" style="padding:8px 12px;font-size:12px;"><option value="">همه</option></select></div>
+                </div>
+                <div style="display:flex;gap:8px;flex-wrap:wrap;justify-content:center;align-items:center;margin-bottom:12px;">
+                    <div style="flex:1;min-width:140px;max-width:180px;"><label style="font-size:11px;font-weight:600;color:#5a7a5a;">از تاریخ</label><div class="calendar-container"><input type="text" id="mylogsFromDate" class="date-input" placeholder="1403/06/01" style="padding:8px 12px;font-size:12px;"><div class="calendar-popup" id="cal_mylogsFromDate"></div></div></div>
+                    <div style="flex:1;min-width:140px;max-width:180px;"><label style="font-size:11px;font-weight:600;color:#5a7a5a;">تا تاریخ</label><div class="calendar-container"><input type="text" id="mylogsToDate" class="date-input" placeholder="1403/06/31" style="padding:8px 12px;font-size:12px;"><div class="calendar-popup" id="cal_mylogsToDate"></div></div></div>
+                    <button class="btn btn-ghost btn-sm" id="mylogsFilterBtn" style="margin-top:20px;">🔍 اعمال فیلتر</button>
+                </div>
+                <div style="display:flex;gap:8px;justify-content:center;margin-bottom:12px;">
+                    <button class="btn btn-ghost btn-sm" id="mylogsPrintBtn">🖨️ پرینت سوابق</button>
+                </div>
+                <div id="mylogsList"></div>
+            </section>
+            <section class="view" id="view-leaverequests">
+                <div class="card" style="background:rgba(200,160,40,0.06);border-color:rgba(200,160,40,0.2);"><div class="card-title">📝 درخواست مرخصی جدید</div></div>
+                <div class="settings-card" style="max-width:640px;margin:0 auto;">
+                    <div class="field"><label>👤 نام و نام خانوادگی</label><div style="position:relative;"><select id="leaveFullName"><option value="">— انتخاب کنید —</option></select></div></div>
+                    <div class="field"><label>🆔 کد ملی</label><input id="leaveNationalCode" placeholder="کد ملی"></div>
+                    <div class="field"><label>📝 قسمت (واحد/بخش)</label><input id="leaveSection" placeholder="واحد یا بخش خود را وارد کنید"></div>
+                    <div class="field"><label>📅 تاریخ درخواست</label><div class="calendar-container"><input type="text" id="leaveRequestDate" class="date-input" placeholder="1403/06/15"><div class="calendar-popup" id="cal_leaveRequestDate"></div></div></div>
+                    <div class="field-row">
+                        <div class="field"><label>📅 تاریخ شروع</label><div class="calendar-container"><input type="text" id="leaveStartDate" class="date-input" placeholder="1403/06/15"><div class="calendar-popup" id="cal_leaveStartDate"></div></div></div>
+                        <div class="field"><label>📅 تاریخ پایان</label><div class="calendar-container"><input type="text" id="leaveEndDate" class="date-input" placeholder="1403/06/20"><div class="calendar-popup" id="cal_leaveEndDate"></div></div></div>
+                    </div>
+                    <div class="field-row">
+                        <div class="field"><label>🗂️ نوع مرخصی</label><select id="leaveType"></select></div>
+                        <div class="field"><label>❓ علت مرخصی</label><input id="leaveReason" placeholder="علت مرخصی را بنویسید"></div>
+                    </div>
+                    <div class="field-row" id="leaveHourFields" style="display:none;">
+                        <div class="field"><label>⏰ ساعت شروع (خروج)</label><input type="time" id="leaveHourStart"></div>
+                        <div class="field"><label>⏰ ساعت پایان (ورود)</label><input type="time" id="leaveHourEnd"></div>
+                    </div>
+                    <div class="field"><label>⏱️ مدت مرخصی</label><input id="leaveDuration" readonly style="background:#f0f4f0;font-weight:700;color:#3a6a3a;"></div>
+                    <div class="field"><label>📝 توضیحات</label><textarea id="leaveDescription" placeholder="توضیحات تکمیلی"></textarea></div>
+                    <div class="field" style="text-align:center;">
+                        <label>✍️ امضاء پرسنل</label>
+                        <div style="margin-top:6px;">
+                            <button type="button" id="openSignatureBtn" style="padding:10px 28px;background:rgba(240,245,240,0.9);border:2px dashed #5a8a5a;border-radius:12px;font-size:15px;font-weight:700;color:#3a6a3a;cursor:pointer;font-family:var(--font-primary);transition:all 0.2s;">✍️ امضاء</button>
+                            <div id="signaturePreview" style="margin-top:8px;display:none;"><img id="signaturePreviewImg" style="max-height:40px;border:1px solid #c8d8c8;border-radius:8px;padding:4px;background:#fff;" alt="پیش‌نمایش امضا"><br><button type="button" id="clearSignatureBtn" style="font-size:10px;color:#a03030;background:none;border:none;cursor:pointer;margin-top:4px;">🗑️ حذف امضا</button></div>
+                        </div>
+                    </div>
+                    <button class="btn btn-primary" id="submitLeaveRequestBtn" style="margin-top:12px;">📤 ارسال درخواست</button>
+                </div>
+                <div class="card" style="max-width:640px;margin:14px auto 0;"><div class="card-title">📋 درخواست‌های من</div><div id="myLeaveRequests"></div></div>
+            </section>
+<!-- ========== پایان بخش ۵ از ۲۰ ========== -->
+<!-- ========== شروع بخش ۶ از ۲۰ ========== -->
+            <section class="view" id="view-personnel">
+                <div class="card" style="background:rgba(90,138,90,0.04);border-color:rgba(90,138,90,0.15);"><div class="card-title">👥 مدیریت پرسنل</div></div>
+                <button class="btn btn-primary btn-sm" id="addPersonnelBtn" style="margin-bottom:12px;padding:8px 18px;">➕ افزودن پرسنل</button>
+                <div class="personnel-table-wrap"><table class="personnel-table"><thead><tr><th>#</th><th>نام</th><th>نوع شیفت</th><th>تأیید کننده</th><th>عملیات</th></tr></thead><tbody id="personnelMgmtBody"></tbody></table></div>
+            </section>
+            <section class="view" id="view-users">
+                <div class="card" style="background:rgba(60,140,200,0.04);border-color:rgba(60,140,200,0.15);"><div class="card-title">👤 مدیریت کاربران</div></div>
+                <button class="btn btn-primary btn-sm" id="addUserBtn" style="margin-bottom:12px;padding:8px 18px;">➕ افزودن کاربر</button>
+                <div id="usersList"></div>
+            </section>
+<!-- ========== پایان بخش ۶ از ۲۰ ========== -->
+<!-- ========== شروع بخش ۷ از ۲۰ ========== -->
+            <section class="view" id="view-settings">
+                <div class="card" style="background:rgba(60,140,200,0.04);border-color:rgba(60,140,200,0.15);margin-bottom:10px;"><div class="card-title">⚙️ تنظیمات سیستم</div></div>
+                <div style="display:flex;gap:6px;flex-wrap:wrap;margin-bottom:16px;justify-content:center;">
+                    <button class="config-tab active" data-tab="tab-time" style="padding:10px 16px;border:none;border-radius:25px;background:rgba(90,138,90,0.12);color:#3a6a3a;font-weight:700;font-size:13px;cursor:pointer;font-family:var(--font-primary);transition:all 0.2s;">⏰ ساعت کاری</button>
+                    <button class="config-tab" data-tab="tab-leave" style="padding:10px 16px;border:none;border-radius:25px;background:rgba(240,245,240,0.6);color:#5a7a5a;font-weight:600;font-size:13px;cursor:pointer;font-family:var(--font-primary);transition:all 0.2s;">📝 مرخصی</button>
+                    <button class="config-tab" data-tab="tab-attendance" style="padding:10px 16px;border:none;border-radius:25px;background:rgba(240,245,240,0.6);color:#5a7a5a;font-weight:600;font-size:13px;cursor:pointer;font-family:var(--font-primary);transition:all 0.2s;">🛡️ تردد</button>
+                    <button class="config-tab" data-tab="tab-overtime" style="padding:10px 16px;border:none;border-radius:25px;background:rgba(240,245,240,0.6);color:#5a7a5a;font-weight:600;font-size:13px;cursor:pointer;font-family:var(--font-primary);transition:all 0.2s;">🕐 اضافه‌کاری</button>
+                    <button class="config-tab" data-tab="tab-appearance" style="padding:10px 16px;border:none;border-radius:25px;background:rgba(240,245,240,0.6);color:#5a7a5a;font-weight:600;font-size:13px;cursor:pointer;font-family:var(--font-primary);transition:all 0.2s;">🎨 ظاهر</button>
+                    <button class="config-tab" data-tab="tab-advanced" style="padding:10px 16px;border:none;border-radius:25px;background:rgba(240,245,240,0.6);color:#5a7a5a;font-weight:600;font-size:13px;cursor:pointer;font-family:var(--font-primary);transition:all 0.2s;">⚡ پیشرفته</button>
+                </div>
+                <div class="config-content active" id="tab-time">
+                    <div class="card"><div class="card-title">⏰ ساعت کاری</div>
+                        <div class="field-row"><div class="field"><label>⏰ شروع کار</label><input type="time" id="settingStartTime"></div><div class="field"><label>⏰ پایان کار</label><input type="time" id="settingEndTime"></div></div>
+                    </div>
+                    <div class="card"><div class="card-title">⏱️ تلرانس‌ها</div>
+                        <div class="field-row"><div class="field"><label>🔴 تاخیر مجاز (دقیقه)</label><input type="number" id="settingLateTolerance" min="0" max="120"></div><div class="field"><label>🔵 خروج زود مجاز (دقیقه)</label><input type="number" id="settingEarlyTolerance" min="0" max="120"></div></div>
+                    </div>
+                </div>
+                <div class="config-content" id="tab-overtime" style="display:none;">
+                    <div class="card"><div class="card-title">🕐 تنظیمات اضافه‌کاری</div>
+                        <div class="field-row"><div class="field"><label>📅 اولین پنجشنبه کاری</label><div class="calendar-container"><input type="text" id="settingFirstThursday" class="date-input" placeholder="1403/06/15"><div class="calendar-popup" id="cal_settingFirstThursday"></div></div></div></div>
+                        <div class="field-row">
+                            <div class="field"><label>🕐 ضریب جمعه‌کاری</label><input type="number" id="settingFridayRate" value="1.4" step="0.1" min="1" max="3"></div>
+                            <div class="field"><label>🕐 پنجشنبه اضافه‌کار</label><select id="settingThursdayOT"><option value="1">فعال</option><option value="0">غیرفعال</option></select></div>
+                        </div>
+                    </div>
+                </div>
+                <div class="config-content" id="tab-leave" style="display:none;">
+                    <div class="card"><div class="card-title">📝 انواع مرخصی فعال</div>
+                        <div style="display:flex;gap:16px;flex-wrap:wrap;justify-content:center;">
+                            <label style="font-size:14px;display:flex;align-items:center;gap:8px;background:rgba(60,180,60,0.06);padding:10px 16px;border-radius:12px;cursor:pointer;"><input type="checkbox" id="leaveOptEntitled" style="width:20px;height:20px;"> 🗓️ استحقاقی</label>
+                            <label style="font-size:14px;display:flex;align-items:center;gap:8px;background:rgba(200,60,60,0.04);padding:10px 16px;border-radius:12px;cursor:pointer;"><input type="checkbox" id="leaveOptSick" style="width:20px;height:20px;"> 🤒 استعلاجی</label>
+                            <label style="font-size:14px;display:flex;align-items:center;gap:8px;background:rgba(200,160,40,0.06);padding:10px 16px;border-radius:12px;cursor:pointer;"><input type="checkbox" id="leaveOptHourly" style="width:20px;height:20px;"> ⏰ ساعتی</label>
+                        </div>
+                    </div>
+                </div>
+                <div class="config-content" id="tab-attendance" style="display:none;">
+                    <div class="card"><div class="card-title">🛡️ ثبت تردد</div>
+                        <div class="field"><label>🔢 حداکثر مراحل ورود/خروج در روز</label><input type="number" id="settingMaxStages" min="1" max="10"></div>
+                    </div>
+                </div>
+<!-- ========== پایان بخش ۷ از ۲۰ ========== -->
+<!-- ========== شروع بخش ۸ از ۲۰ ========== -->
+                <div class="config-content" id="tab-appearance" style="display:none;">
+                    <div class="card"><div class="card-title">🎨 تم‌های رنگی</div><div class="theme-grid" id="themeGrid"></div></div>
+                    <div class="card"><div class="card-title">📏 اندازه فونت‌ها</div>
+                        <div class="field-row"><div class="field"><label>هدر</label><input type="number" id="setHeaderFont" min="14" max="30"></div><div class="field"><label>تب‌ها</label><input type="number" id="setTabFont" min="9" max="18"></div><div class="field"><label>نام</label><input type="number" id="setNameSize" min="9" max="20"></div></div>
+                        <div class="field-row"><div class="field"><label>زمان</label><input type="number" id="setTimeFont" min="9" max="18"></div><div class="field"><label>دکمه ثبت</label><input type="number" id="setBtnActionFont" min="8" max="16"></div><div class="field"><label>دکمه مدیریت</label><input type="number" id="setBtnMgmtFont" min="8" max="16"></div></div>
+                    </div>
+                    <div class="card"><div class="card-title">🎨 رنگ‌ها</div>
+                        <div class="color-grid">
+                            <div class="color-item"><label>عنوان</label><div class="color-picker-wrapper"><div class="color-picker-circle" id="circle_title"></div><input type="color" id="colorTitle"></div></div>
+                            <div class="color-item"><label>پس‌زمینه کارت</label><div class="color-picker-wrapper"><div class="color-picker-circle" id="circle_cardBg"></div><input type="color" id="colorCardBg"></div></div>
+                            <div class="color-item"><label>دکمه اصلی</label><div class="color-picker-wrapper"><div class="color-picker-circle" id="circle_btnPrimaryBg"></div><input type="color" id="colorBtnPrimaryBg"></div></div>
+                            <div class="color-item"><label>دکمه ورود</label><div class="color-picker-wrapper"><div class="color-picker-circle" id="circle_btnInBg"></div><input type="color" id="colorBtnInBg"></div></div>
+                            <div class="color-item"><label>دکمه خروج</label><div class="color-picker-wrapper"><div class="color-picker-circle" id="circle_btnOutBg"></div><input type="color" id="colorBtnOutBg"></div></div>
+                        </div>
+                    </div>
+                </div>
+                <div class="config-content" id="tab-advanced" style="display:none;">
+                    <div class="card"><div class="card-title">💾 مدیریت داده‌ها</div>
+                        <div class="field-row" style="margin-top:8px;"><button class="btn btn-danger btn-sm" id="clearAllLogsBtn">🗑️ حذف همه لاگ‌ها</button></div>
+                    </div>
+                </div>
+                <div style="display:flex;gap:10px;justify-content:center;margin-top:16px;">
+                    <button class="btn btn-primary" id="saveSettingsBtn" style="width:auto;padding:10px 28px;">💾 ذخیره تنظیمات</button>
+                </div>
+            </section>
+            <section class="view" id="view-reports">
+                <div class="card" style="background:rgba(60,140,200,0.04);border-color:rgba(60,140,200,0.15);"><div class="card-title">📊 گزارش‌گیری</div></div>
+                <div class="settings-card" style="max-width:640px;margin:0 auto;">
+                    <div class="field-row"><div class="field"><label>📅 از تاریخ</label><div class="calendar-container"><input type="text" id="reportFromDate" class="date-input" placeholder="1403/06/01"><div class="calendar-popup" id="cal_reportFromDate"></div></div></div><div class="field"><label>📅 تا تاریخ</label><div class="calendar-container"><input type="text" id="reportToDate" class="date-input" placeholder="1403/06/31"><div class="calendar-popup" id="cal_reportToDate"></div></div></div></div>
+                    <div style="display:flex;gap:8px;margin-top:10px;flex-wrap:wrap;justify-content:center;">
+                        <button class="btn btn-sm" id="reportTodayBtn" style="flex:1;background:rgba(60,140,200,0.15);color:#205080;border:1px solid rgba(60,140,200,0.3);">📅 امروز</button>
+                        <button class="btn btn-sm" id="reportWeekBtn" style="flex:1;background:rgba(60,140,200,0.1);color:#205080;border:1px solid rgba(60,140,200,0.2);">📅 این هفته</button>
+                        <button class="btn btn-sm" id="reportMonthBtn" style="flex:1;background:rgba(60,140,200,0.1);color:#205080;border:1px solid rgba(60,140,200,0.2);">📅 این ماه</button>
+                    </div>
+                    <button class="btn btn-primary" id="showReportBtn" style="margin-top:12px;">🔍 نمایش گزارش</button>
+                </div>
+                <div id="reportResult" style="margin-top:14px;max-width:100%;overflow-x:auto;"></div>
+            </section>
+        </main>
+    </div>
+    <div class="toast" id="toast"></div>
+    <input type="file" id="importFileInput" accept=".json" style="display:none;">
+<!-- ========== پایان بخش ۸ از ۲۰ ========== -->
+<!-- ========== شروع بخش ۹ از ۲۰ ========== -->
+<script>
+setTimeout(function() {
+var sb = supabase.createClient('https://zthmxszcmoydptofziyk.supabase.co','sb_publishable_mw2BQ5Fmg0v6ATaTSEV63Q_bNCyTCS2');
+(function() {
+    var ROLE_LABELS = { superadmin: '⭐ ادمین کل', manager: '👤 مدیر', guard: '🛡️ نگهبان', staff: '👥 کارمند' };
+    var PERM_KEYS = ['dashboard','register','register_edit','register_delete','manager','manager_check','manager_absent','manager_leave','mylogs','mylogs_filter','mylogs_print','leaverequests','leave_edit_own','leave_approve','leave_manage','personnel','personnel_add','personnel_edit','personnel_delete','users','users_add','users_edit','users_delete','reports','reports_view','reports_export_pdf','reports_export_excel','settings','settings_time','settings_leave','settings_attendance','settings_overtime','settings_appearance','settings_advanced','backup_export','backup_import','change_password','reset_data'];
+    var LEAVE_TYPE_LABELS = { entitled:'🗓️ استحقاقی', sick:'🤒 استعلاجی', hourly:'⏰ ساعتی' };
+    var MAX_STAGES = 3;
+    var currentUser = null;
+    var DB = { personnel: [], logs: [], nextId: 100, manualStatus: {}, checkedLogs: {}, leaveRequests: [], leaveDetails: {} };
+    var SETTINGS = { startTime:'08:00', endTime:'14:00', lateTolerance:0, earlyTolerance:0, leaveOptions:{entitled:true,sick:true,hourly:true}, maxStages:3, headerFont:20, tabFont:12, nameSize:13, timeWidth:70, timeHeight:30, timeFont:13, btnActionFont:12, btnMgmtFont:11, statusFont:11, checkSize:20, badgeFont:10, inputFont:14, cardTitleFont:15, tableThFont:12, rowHeight:40 };
+    var COLORS = { headerBg:'rgba(255,255,255,0.8)', title:'#2d5a2d', tabBg:'rgba(240,245,240,0.6)', tabText:'#5a7a5a', tabActiveBg:'rgba(90,138,90,0.1)', tabActiveText:'#3a6a3a', tabActiveBorder:'rgba(90,138,90,0.3)', cardBg:'rgba(255,255,255,0.7)', cardBorder:'rgba(100,140,100,0.15)', btnPrimaryBg:'linear-gradient(135deg,#5a8a5a,#3a6a3a)', btnPrimaryText:'#fff', btnInBg:'linear-gradient(135deg,#4aac4a,#3a8a3a)', btnOutBg:'linear-gradient(135deg,#d04040,#b03030)', statusCompletedBg:'rgba(60,180,60,0.1)', statusCompletedText:'#207020', statusInprogressBg:'rgba(60,140,200,0.1)', statusInprogressText:'#205080', statusLateBg:'rgba(200,60,60,0.08)', statusEarlyBg:'rgba(60,60,200,0.08)', hourlyLeaveColor:'#8a6a20', pageBg:'linear-gradient(135deg,#f0f4f0,#e8efe8)', textColor:'#1e293b' };
+    var globalDate = '';
+
+    function initGlobalDate() { var d = new Date(); var j = gregorianToJalali(d.getFullYear(), d.getMonth()+1, d.getDate()); globalDate = j[0]+'/'+j[1].toString().padStart(2,'0')+'/'+j[2].toString().padStart(2,'0'); }
+    initGlobalDate();
+    function setGlobalDate(dateStr) { if(isValidPersianDate(dateStr)) { globalDate = dateStr; syncAllDateInputs(); renderAllViews(); } }
+    function getGlobalDate() { return globalDate; }
+    function isValidPersianDate(str) { if(!str) return false; var parts = str.split('/'); if(parts.length !== 3) return false; var jy = parseInt(parts[0]), jm = parseInt(parts[1]), jd = parseInt(parts[2]); if(isNaN(jy)||isNaN(jm)||isNaN(jd)) return false; if(jm<1||jm>12) return false; if(jd<1||jd>getJalaliMonthDays(jy,jm)) return false; return true; }
+    function syncAllDateInputs() { ['registerDate','managerDate','dashboardDate'].forEach(function(id) { var el = document.getElementById(id); if(el) el.value = globalDate; }); }
+    function gregorianToJalali(gy,gm,gd) { var g_d_m = [0,31,59,90,120,151,181,212,243,273,304,334]; var gy2 = (gm>2)?(gy+1):gy; var days = 355666+(365*gy)+Math.floor((gy2+3)/4)-Math.floor((gy2+99)/100)+Math.floor((gy2+399)/400)+gd+g_d_m[gm-1]; var jy = -1595+(33*Math.floor(days/12053)); days %= 12053; jy += 4*Math.floor(days/1461); days %= 1461; if(days>365){jy+=Math.floor((days-1)/365);days=(days-1)%365;} var jm,jd; if(days<186){jm=1+Math.floor(days/31);jd=1+(days%31);} else{jm=7+Math.floor((days-186)/30);jd=1+((days-186)%30);} return [jy,jm,jd]; }
+    function jalaliToGregorian(jy,jm,jd) { jy+=1595; var days = -355668+(365*jy)+(Math.floor(jy/33)*8)+Math.floor(((jy%33)+3)/4)+jd; if(jm<7)days+=(jm-1)*31; else days+=((jm-7)*30)+186; var gy = 400*Math.floor(days/146097); days %= 146097; if(days>36524){gy+=100*Math.floor(--days/36524);days%=36524;if(days>=365)days++;} gy+=4*Math.floor(days/1461); days%=1461; if(days>365){gy+=Math.floor((days-1)/365);days=(days-1)%365;} var gd = days+1; var sal_a = [0,31,((gy%4===0&&gy%100!==0)||(gy%400===0))?29:28,31,30,31,30,31,31,30,31,30,31]; var gm; for(gm=1;gm<13&&gd>sal_a[gm];gm++)gd-=sal_a[gm]; return [gy,gm,gd]; }
+    function toPersianDate(d) { if(!d||isNaN(d.getTime()))return''; var j = gregorianToJalali(d.getFullYear(),d.getMonth()+1,d.getDate()); return j[0]+'/'+j[1].toString().padStart(2,'0')+'/'+j[2].toString().padStart(2,'0'); }
+    function persianToGregorian(str) { if(!str)return null; var parts=str.split('/'); if(parts.length!==3)return null; var jy=parseInt(parts[0]),jm=parseInt(parts[1]),jd=parseInt(parts[2]); if(isNaN(jy)||isNaN(jm)||isNaN(jd))return null; var g=jalaliToGregorian(jy,jm,jd); return new Date(g[0],g[1]-1,g[2]); }
+    function addDaysToJalali(dateStr,days) { var d=persianToGregorian(dateStr); if(!d)return dateStr; d.setDate(d.getDate()+days); return toPersianDate(d); }
+    function getJalaliMonthDays(jy,jm) { if(jm<=6)return 31; if(jm<=11)return 30; return 29; }
+    function nowTime() { var d=new Date(); return d.getHours().toString().padStart(2,'0')+':'+d.getMinutes().toString().padStart(2,'0'); }
+    function timeToMinutes(t) { if(!t||t.indexOf(':')===-1)return null; var p=t.split(':'); return parseInt(p[0])*60+parseInt(p[1]); }
+<!-- ========== پایان بخش ۹ از ۲۰ ========== -->
+<!-- ========== شروع بخش ۱۰ از ۲۰ ========== -->
+    function isThursday(dateStr) { var g = persianToGregorian(dateStr); if(!g) return false; return g.getDay() === 5 }
+    function isFriday(dateStr) { var g = persianToGregorian(dateStr); if(!g) return false; return g.getDay() === 6 }
+    function isWorkingThursday(dateStr) { if(!isThursday(dateStr)) return false; if(!SETTINGS.firstThursday) return false; if(SETTINGS.thursdayOT===false) return false; var fG=persianToGregorian(SETTINGS.firstThursday),cG=persianToGregorian(dateStr); if(!fG||!cG) return false; var d=Math.floor((cG-fG)/86400000); return d>=0&&d%14===0 }
+    function calcOvertime(personnelId,date) { try{var logs=DB.logs.filter(function(l){return l.personnel_id===personnelId&&l.date===date}).sort(function(a,b){return a.id-b.id});if(!logs.length)return{normalOT:0,fridayOT:0,thursdayOT:0,totalOT:0};var iT=null,oT=null;for(var i=0;i<logs.length;i++){if(logs[i].type==='in'&&!iT)iT=timeToMinutes(logs[i].time);if(logs[i].type==='out')oT=timeToMinutes(logs[i].time)}if(!iT||!oT)return{normalOT:0,fridayOT:0,thursdayOT:0,totalOT:0};var tW=oT-iT;if(tW<=0)return{normalOT:0,fridayOT:0,thursdayOT:0,totalOT:0};var r={normalOT:0,fridayOT:0,thursdayOT:0,totalOT:tW};if(isFriday(date))r.fridayOT=tW;else if(isWorkingThursday(date))r.thursdayOT=tW;else{var sT=SETTINGS.startTime||'08:00',eT=SETTINGS.endTime||'14:00',sM=timeToMinutes(sT),eM=timeToMinutes(eT);if(sM!==null&&eM!==null){r.normalOT=Math.max(0,sM-iT)+Math.max(0,oT-eM)}}return r}catch(e){return{normalOT:0,fridayOT:0,thursdayOT:0,totalOT:0}}}
+
+    function saveLocalData(){ localStorage.setItem('tatSabz_db', JSON.stringify({personnel:DB.personnel, logs:DB.logs, leaveRequests:DB.leaveRequests, manualStatus:DB.manualStatus, checkedLogs:DB.checkedLogs, leaveDetails:DB.leaveDetails, nextId:DB.nextId})) }
+    function loadLocalData(){ var d=localStorage.getItem('tatSabz_db'); if(d){ var p=JSON.parse(d); DB.personnel=p.personnel||[]; DB.logs=p.logs||[]; DB.leaveRequests=p.leaveRequests||[]; DB.manualStatus=p.manualStatus||{}; DB.checkedLogs=p.checkedLogs||{}; DB.leaveDetails=p.leaveDetails||{}; DB.nextId=p.nextId||100 } }
+    function getPersonnelName(id){ var p=DB.personnel.find(function(x){return x.id===id}); return p?p.name:'ناشناس' }
+    function getPersonnelShift(id){ var p=DB.personnel.find(function(x){return x.id===id}); return p?(p.shift||'day'):'day' }
+    function toast(msg){ var t=document.getElementById('toast'); if(!t)return; t.textContent=msg; t.classList.add('show'); setTimeout(function(){t.classList.remove('show')},2000) }
+    function isOnLeave(personnelId, date) { var leaves = DB.leaveDetails && DB.leaveDetails[personnelId]; if (!leaves) return false; if (!Array.isArray(leaves)) { if (leaves.type === 'hourly') return false; if (leaves.startDate && leaves.endDate && date >= leaves.startDate && date <= leaves.endDate) return true; return false } for (var i = 0; i < leaves.length; i++) { var ld = leaves[i]; if (ld && ld.type === 'hourly') continue; if (ld && ld.startDate && ld.endDate && date >= ld.startDate && date <= ld.endDate) return true } return false }
+    function getTodayLogs(personnelId,date){ return DB.logs.filter(function(l){return l.personnel_id===personnelId&&l.date===date}).sort(function(a,b){return a.id-b.id}) }
+    function isChecked(personnelId,date){ return DB.checkedLogs[personnelId+'_'+date]===true }
+    function hasUserPerm(permKey) { if (!currentUser) return false; if (currentUser.role === 'superadmin') return true; return currentUser.permissions && currentUser.permissions.indexOf(permKey) !== -1 }
+    function getStatusForDay(personnelId,date){ var logs=getTodayLogs(personnelId,date); if(isOnLeave(personnelId,date)){ return{status:'leave',label:'🏖️ مرخصی',cls:'leave'} } if(DB.manualStatus&&DB.manualStatus[personnelId]==='absent'){ return{status:'absent',label:'❌ غایب',cls:'absent'} } if(!logs.length)return{status:'not-entered',label:'⬜ وارد نشده',cls:'not-entered'}; var lastLog=logs[logs.length-1]; if(lastLog.type==='out')return{status:'completed',label:'✅ خارج شد',cls:'completed'}; if(lastLog.type==='in'){ var firstIn=logs[0]; var startTime=SETTINGS.startTime||'08:00'; var sm=timeToMinutes(startTime),ll=sm+(SETTINGS.lateTolerance||0),im=timeToMinutes(firstIn.time); if(im>ll){ var delayMin=im-ll; return{status:'late',label:'🔴 تاخیر '+delayMin+' دقیقه',cls:'late'} } return{status:'inprogress',label:'⏳ در حال کار',cls:'inprogress'} } return{status:'not-entered',label:'⬜ وارد نشده',cls:'not-entered'} }
+<!-- ========== پایان بخش ۱۰ از ۲۰ ========== -->
+<!-- ========== شروع بخش ۱۱ از ۲۰ ========== -->
+    function applyAllStyles() {
+        var r = document.querySelector(':root');
+        r.style.setProperty('--header-font', SETTINGS.headerFont+'px');r.style.setProperty('--tab-font', SETTINGS.tabFont+'px');
+        r.style.setProperty('--name-font', SETTINGS.nameSize+'px');r.style.setProperty('--time-width', SETTINGS.timeWidth+'px');
+        r.style.setProperty('--time-height', SETTINGS.timeHeight+'px');r.style.setProperty('--time-font', SETTINGS.timeFont+'px');
+        r.style.setProperty('--btn-action-font', SETTINGS.btnActionFont+'px');r.style.setProperty('--btn-mgmt-font', SETTINGS.btnMgmtFont+'px');
+        r.style.setProperty('--status-font', SETTINGS.statusFont+'px');r.style.setProperty('--check-size', SETTINGS.checkSize+'px');
+        r.style.setProperty('--badge-font', SETTINGS.badgeFont+'px');r.style.setProperty('--input-font', SETTINGS.inputFont+'px');
+        r.style.setProperty('--card-title-font', SETTINGS.cardTitleFont+'px');r.style.setProperty('--table-th-font', SETTINGS.tableThFont+'px');
+        r.style.setProperty('--row-height', SETTINGS.rowHeight+'px');
+        r.style.setProperty('--color-header-bg', COLORS.headerBg);r.style.setProperty('--color-title', COLORS.title);
+        r.style.setProperty('--color-tab-bg', COLORS.tabBg);r.style.setProperty('--color-tab-text', COLORS.tabText);
+        r.style.setProperty('--color-tab-active-bg', COLORS.tabActiveBg);r.style.setProperty('--color-tab-active-text', COLORS.tabActiveText);
+        r.style.setProperty('--color-tab-active-border', COLORS.tabActiveBorder);r.style.setProperty('--color-card-bg', COLORS.cardBg);
+        r.style.setProperty('--color-card-border', COLORS.cardBorder);r.style.setProperty('--color-btn-primary-bg', COLORS.btnPrimaryBg);
+        r.style.setProperty('--color-btn-primary-text', COLORS.btnPrimaryText);r.style.setProperty('--color-btn-in-bg', COLORS.btnInBg);
+        r.style.setProperty('--color-btn-out-bg', COLORS.btnOutBg);r.style.setProperty('--color-status-completed-bg', COLORS.statusCompletedBg);
+        r.style.setProperty('--color-status-completed-text', COLORS.statusCompletedText);r.style.setProperty('--color-status-inprogress-bg', COLORS.statusInprogressBg);
+        r.style.setProperty('--color-status-inprogress-text', COLORS.statusInprogressText);r.style.setProperty('--color-status-late-bg', COLORS.statusLateBg);
+        r.style.setProperty('--color-status-early-bg', COLORS.statusEarlyBg);r.style.setProperty('--color-hourly-leave', COLORS.hourlyLeaveColor);
+        r.style.setProperty('--page-bg', COLORS.pageBg);r.style.setProperty('--text-color', COLORS.textColor);
+    }
+    function openSheet(html){ var old=document.querySelector('.sheet-overlay');if(old)old.remove(); var overlay=document.createElement('div');overlay.className='sheet-overlay active'; var sheet=document.createElement('div');sheet.className='sheet'; sheet.innerHTML='<div class="sheet-handle"></div><button class="close-btn">✕</button>'+html; overlay.appendChild(sheet);document.getElementById('app').appendChild(overlay); overlay.addEventListener('click',function(e){if(e.target===overlay)overlay.remove();}); sheet.querySelector('.close-btn').addEventListener('click',function(){overlay.remove();}); return overlay; }
+    document.querySelectorAll('.config-tab').forEach(function(tab){tab.addEventListener('click',function(){document.querySelectorAll('.config-tab').forEach(function(t){t.classList.remove('active');t.style.background='rgba(240,245,240,0.6)';t.style.color='#5a7a5a';});this.classList.add('active');this.style.background='rgba(90,138,90,0.12)';this.style.color='#3a6a3a';document.querySelectorAll('.config-content').forEach(function(c){c.style.display='none';});var t=document.getElementById(this.getAttribute('data-tab'));if(t)t.style.display='block';});});
+<!-- ========== پایان بخش ۱۱ از ۲۰ ========== -->
+<!-- ========== شروع بخش ۱۲ از ۲۰ ========== -->
+    document.getElementById('loginBtn').addEventListener('click', async function(){
+        var email = document.getElementById('loginEmail').value.trim();
+        var password = document.getElementById('loginPassword').value.trim();
+        var err = document.getElementById('loginError');
+        if(!email || !password){ err.textContent = 'ایمیل و رمز را وارد کنید'; err.classList.add('show'); return; }
+        err.classList.remove('show');
+        
+        // ۱. تلاش لاگین با Supabase
+        try {
+            var { data, error } = await sb.auth.signInWithPassword({ email: email, password: password });
+            if(!error && data.session) {
+                // لاگین موفق با Supabase
+                var { data: ud } = await sb.from('users').select('*').eq('email', email).single();
+                var role = ud ? ud.role : 'staff';
+                var perms = ud ? (ud.permissions || ['dashboard']) : ['dashboard'];
+                var name = ud ? ud.full_name : email;
+                currentUser = { userId: data.user.id, email: email, fullName: name, role: role, permissions: perms, isSuperAdmin: role === 'superadmin' };
+                localStorage.setItem('tatSabz_session', JSON.stringify(currentUser));
+                // لود داده‌ها از Supabase
+                try {
+                    var p = await sb.from('personnel').select('*');
+                    var l = await sb.from('logs').select('*');
+                    if(p.data) DB.personnel = p.data;
+                    if(l.data) DB.logs = l.data;
+                    DB.nextId = DB.logs.length > 0 ? Math.max.apply(null, DB.logs.map(function(x){return x.id;})) + 1 : 100;
+                    saveLocalData();
+                } catch(e) { loadLocalData(); }
+                showApp(); toast('🌿 خوش آمدید، ' + name); return;
+            }
+        } catch(e) { console.log('Supabase login failed'); }
+
+        // ۲. چک کاربرای localStorage
+        var localUsers = JSON.parse(localStorage.getItem('tatSabz_local_users') || '[]');
+        var found = localUsers.find(function(u){ return u.email === email && u.password === password; });
+        if(found){
+            currentUser = { userId: found.id, email: found.email, fullName: found.fullName, role: found.role, permissions: found.permissions || ['dashboard'], isSuperAdmin: found.role === 'superadmin' };
+            localStorage.setItem('tatSabz_session', JSON.stringify(currentUser));
+            loadLocalData();
+            showApp(); toast('🌿 خوش آمدید، ' + found.fullName); return;
+        }
+
+        // ۳. fallback admin
+        if(email === 'admin' && password === 'admin123'){
+            currentUser = { userId: 1, email: 'admin', fullName: 'ادمین اصلی', role: 'superadmin', permissions: PERM_KEYS, isSuperAdmin: true };
+            localStorage.setItem('tatSabz_session', JSON.stringify(currentUser));
+            loadLocalData();
+            showApp(); toast('🌿 خوش آمدید'); return;
+        }
+
+        err.textContent = 'ایمیل یا رمز اشتباه است'; err.classList.add('show');
+    });
+
+    function showLogin(){ document.getElementById('loginScreen').style.display='flex'; document.getElementById('app').classList.remove('active'); }
+    function showApp(){
+        if(!currentUser){
+            var saved = localStorage.getItem('tatSabz_session');
+            if(saved){ currentUser = JSON.parse(saved); loadLocalData(); }
+            else { showLogin(); return; }
+        }
+        document.getElementById('loginScreen').style.display='none'; document.getElementById('app').classList.add('active');
+        document.getElementById('headerName').textContent = currentUser.fullName;
+        document.getElementById('headerRole').textContent = ROLE_LABELS[currentUser.role] || '';
+        document.querySelectorAll('.hamburger-dropdown .menu-item[data-view]').forEach(function(el){ el.style.display = hasUserPerm(el.dataset.view) ? 'flex' : 'none'; });
+        var tabs = document.querySelectorAll('#topTabs button[data-view]');
+        tabs.forEach(function(tab){ tab.style.display = hasUserPerm(tab.dataset.view) ? 'inline-block' : 'none'; });
+        document.querySelectorAll('.view').forEach(function(v){ v.classList.remove('active'); });
+        var dv = 'dashboard';
+        if(hasUserPerm('register') && !hasUserPerm('manager')) dv = 'register';
+        else if(hasUserPerm('manager')) dv = 'manager';
+        document.getElementById('view-' + dv).classList.add('active');
+        tabs.forEach(function(tab){ tab.classList.toggle('active', tab.dataset.view === dv); });
+        applyAllStyles(); syncAllDateInputs(); renderAllViews();
+    }
+
+    document.getElementById('hamburgerBtn').addEventListener('click', function(e){ e.stopPropagation(); document.getElementById('hamburgerDropdown').classList.toggle('show'); });
+    document.addEventListener('click', function(e){ var m=document.getElementById('hamburgerDropdown'),b=document.getElementById('hamburgerBtn'); if(m&&b&&!m.contains(e.target)&&!b.contains(e.target)) m.classList.remove('show'); });
+    document.querySelectorAll('.hamburger-dropdown .menu-item[data-view]').forEach(function(item){ item.addEventListener('click',function(){ document.getElementById('hamburgerDropdown').classList.remove('show'); navigateTo(this.dataset.view); }); });
+    document.querySelectorAll('#topTabs button[data-view]').forEach(function(tab){ tab.addEventListener('click',function(){ navigateTo(this.dataset.view); }); });
+    document.getElementById('logoutMenuBtn').addEventListener('click', function(){ if(confirm('خروج؟')){ currentUser = null; localStorage.removeItem('tatSabz_session'); showLogin(); toast('🚪 خارج شدید'); } });
+    document.getElementById('dashboardTodayBtn').addEventListener('click', function(){ document.getElementById('dashboardDate').value = toPersianDate(new Date()); renderDashboard(); });
+    document.getElementById('dashboardPrevBtn').addEventListener('click', function(){ var d=document.getElementById('dashboardDate').value; if(d) document.getElementById('dashboardDate').value = addDaysToJalali(d, -1); renderDashboard(); });
+    document.getElementById('dashboardNextBtn').addEventListener('click', function(){ var d=document.getElementById('dashboardDate').value; if(d) document.getElementById('dashboardDate').value = addDaysToJalali(d, 1); renderDashboard(); });
+
+    function navigateTo(view){
+        if(!currentUser) return;
+        if(!hasUserPerm(view)){ toast('⚠️ دسترسی ندارید'); return; }
+        document.querySelectorAll('.view').forEach(function(v){ v.classList.remove('active'); });
+        document.getElementById('view-' + view).classList.add('active');
+        document.querySelectorAll('#topTabs button[data-view]').forEach(function(tab){ tab.classList.toggle('active', tab.dataset.view === view); });
+        renderAllViews();
+    }
+    function renderAllViews(){
+        var av = document.querySelector('.view.active'); if(!av) return;
+        var v = av.id.replace('view-','');
+        if(v==='dashboard') renderDashboard();
+        else if(v==='register') renderRegisterTable();
+        else if(v==='manager') renderManagerTable();
+        else if(v==='mylogs'){ populateMylogsSelect(); renderMyLogs(); }
+        else if(v==='leaverequests') renderLeaveRequests();
+        else if(v==='personnel') renderPersonnelMgmt();
+        else if(v==='users') renderUsersList();
+        else if(v==='settings') loadSettingsInputs();
+        else if(v==='reports') document.getElementById('reportResult').innerHTML='';
+    }
+<!-- ========== پایان بخش ۱۲ از ۲۰ ========== -->
+<!-- ========== شروع بخش ۱۳ از ۲۰ ========== -->
+    function renderDashboard(){
+        if(!currentUser)return;
+        document.getElementById('dashboardWelcome').textContent='خوش آمدید، '+currentUser.fullName;
+        var today=document.getElementById('dashboardDate').value;
+        if(!today||!isValidPersianDate(today)){today=getGlobalDate();document.getElementById('dashboardDate').value=today;}
+        var personnel=DB.personnel.filter(function(p){return p.role!=='superadmin';});
+        var completed=[],working=[],notEntered=[],leave=[],absent=[],checked=[],latePeople=[],earlyPeople=[];
+        personnel.forEach(function(p){
+            var logs=getTodayLogs(p.id,today);var info=p.name;
+            var firstIn=null,lastOut=null,inTimes=[],outTimes=[];
+            logs.forEach(function(l){if(l.type==='in'){inTimes.push(l.time);if(!firstIn)firstIn=l;}if(l.type==='out'){outTimes.push(l.time);lastOut=l;}});
+            if(inTimes.length)info+=' 🟢'+inTimes.join(',');if(outTimes.length)info+=' 🔴'+outTimes.join(',');
+            var allLeaves=DB.leaveDetails&&DB.leaveDetails[p.id];var hasFullLeave=false,leaveInfo='';
+            if(allLeaves){if(!Array.isArray(allLeaves))allLeaves=[allLeaves];allLeaves.forEach(function(ld){if(ld&&ld.startDate&&ld.endDate&&today>=ld.startDate&&today<=ld.endDate){if(ld.type!=='hourly')hasFullLeave=true;var tl=LEAVE_TYPE_LABELS[ld.type]||'مرخصی';if(ld.type==='hourly')leaveInfo+=(leaveInfo?' | ':'')+'⏰ '+ld.hourStart+' تا '+ld.hourEnd;else leaveInfo+=(leaveInfo?' | ':'')+'🗓️ '+tl;}});}
+            var isAbsent=DB.manualStatus&&DB.manualStatus[p.id]==='absent';
+            if(isAbsent){absent.push(p.name);}else if(hasFullLeave){leave.push(p.name+(leaveInfo?' | '+leaveInfo:' | 🏖️ مرخصی'));}else{
+                if(leaveInfo)leave.push(p.name+' | '+leaveInfo);
+                if(lastOut)completed.push(info);else if(firstIn)working.push(info);else notEntered.push(p.name);
+                if(firstIn){var st=SETTINGS.startTime;if(getPersonnelShift(p.id)==='night')st=SETTINGS.endTime;var sm=timeToMinutes(st),ll=sm+(SETTINGS.lateTolerance||0),im=timeToMinutes(firstIn.time);if(im>ll)latePeople.push(p.name+' | ورود: '+firstIn.time+' | تاخیر: '+(im-ll)+' دقیقه');}
+                if(lastOut){var et=SETTINGS.endTime;if(getPersonnelShift(p.id)==='night')et=SETTINGS.startTime;var em=timeToMinutes(et),el=em-(SETTINGS.earlyTolerance||0),om=timeToMinutes(lastOut.time);if(om<el)earlyPeople.push(p.name+' | خروج: '+lastOut.time+' | خروج زود: '+(el-om)+' دقیقه');}
+            }
+            if(isChecked(p.id,today))checked.push(p.name);
+        });
+        function mc(c,b,e,t,a){return'<div style="background:rgba(255,255,255,0.6);border-radius:14px;padding:12px;border:1px solid '+b+';cursor:pointer;text-align:center;" onclick="showDetailSheet(\''+e+' '+t+'\',[\''+a.join("','")+'\'])"><div style="font-size:24px;font-weight:800;color:'+c+';">'+a.length+'</div><div style="font-size:10px;color:#5a7a5a;">'+e+' '+t+'</div></div>';}
+        document.getElementById('dashboardStats').innerHTML=mc('#207020','rgba(60,180,60,0.3)','✅','خارج شد',completed)+mc('#205080','rgba(60,140,200,0.3)','⏳','در حال کار',working)+mc('#888','rgba(180,180,180,0.3)','⬜','وارد نشده',notEntered)+mc('#8a6a20','rgba(200,160,40,0.3)','🏖️','مرخصی',leave)+mc('#8a2020','rgba(200,60,60,0.3)','❌','غایب',absent)+mc('#205080','rgba(60,140,200,0.3)','✅','بررسی شده',checked)+mc('#a03030','rgba(200,60,60,0.2)','🔴','تاخیر',latePeople)+mc('#3030a0','rgba(60,60,200,0.2)','🔵','خروج زود',earlyPeople);
+    }
+    window.showDetailSheet=function(title,people){var h=people.length===0?'<div style="padding:30px;text-align:center;color:#888;">موردی یافت نشد</div>':people.map(function(n){return'<div class="detail-item"><span>'+n+'</span></div>';}).join('');openSheet('<h3 style="margin-bottom:14px;">'+title+'</h3><div style="max-height:65vh;overflow-y:auto;">'+h+'</div>');};
+<!-- ========== پایان بخش ۱۳ از ۲۰ ========== -->
+<!-- ========== شروع بخش ۱۴ از ۲۰ ========== -->
+    var activeCalInput=null;
+    function openCalendar(inputId){var popup=document.getElementById('cal_'+inputId);if(!popup)return;if(popup.classList.contains('show')){popup.classList.remove('show');activeCalInput=null;return;}document.querySelectorAll('.calendar-popup').forEach(function(el){el.classList.remove('show');});var input=document.getElementById(inputId);var cJ=null;if(input&&input.value&&isValidPersianDate(input.value)){var p=input.value.split('/');cJ={jy:parseInt(p[0]),jm:parseInt(p[1]),jd:parseInt(p[2])};}if(!cJ){var p2=getGlobalDate().split('/');cJ={jy:parseInt(p2[0]),jm:parseInt(p2[1]),jd:parseInt(p2[2])};}activeCalInput=inputId;renderCalPopup(inputId,cJ.jy,cJ.jm,cJ.jd);popup.classList.add('show');}
+    function renderCalPopup(inputId,jy,jm,sd){var popup=document.getElementById('cal_'+inputId);if(!popup)return;var mn=['فروردین','اردیبهشت','خرداد','تیر','مرداد','شهریور','مهر','آبان','آذر','دی','بهمن','اسفند'];var dn=['ش','ی','د','س','چ','پ','ج'];var dim=getJalaliMonthDays(jy,jm);var gF=jalaliToGregorian(jy,jm,1);var fD=new Date(gF[0],gF[1]-1,gF[2]);var jsD=fD.getDay();var so=jsD===6?0:jsD+1;var td=new Date();var tJ=gregorianToJalali(td.getFullYear(),td.getMonth()+1,td.getDate());var pm=jm-1,py=jy;if(pm<1){pm=12;py--;}var dipm=getJalaliMonthDays(py,pm);var yo='';var cJY=gregorianToJalali(new Date().getFullYear(),1,1)[0];for(var y=cJY-5;y<=1430;y++){yo+='<option value="'+y+'" '+(y===jy?'selected':'')+'>'+y+'</option>';}var mo='';for(var m=1;m<=12;m++){mo+='<option value="'+m+'" '+(m===jm?'selected':'')+'>'+mn[m-1]+'</option>';}var h='<div class="cal-nav"><button onclick="calNav(\''+inputId+'\','+jy+','+jm+',-1)">◀</button><select onchange="calGoTo(\''+inputId+'\',this.value,'+jm+')">'+yo+'</select><select onchange="calGoTo(\''+inputId+'\','+jy+',this.value)">'+mo+'</select><button onclick="calNav(\''+inputId+'\','+jy+','+jm+',1)">▶</button></div><table><thead><tr>';for(var i=0;i<7;i++){h+='<th>'+dn[i]+'</th>';}h+='</tr></thead><tbody><tr>';var cc=0;for(var i=so-1;i>=0;i--){var pd=dipm-i;h+='<td class="other-month" onclick="calSelect(\''+inputId+'\','+py+','+pm+','+pd+')">'+pd+'</td>';cc++;}for(var d=1;d<=dim;d++){if(cc>0&&cc%7===0)h+='</tr><tr>';var cls='';if(tJ[0]===jy&&tJ[1]===jm&&tJ[2]===d)cls+=' today';if(d===sd)cls+=' selected';h+='<td class="'+cls+'" onclick="calSelect(\''+inputId+'\','+jy+','+jm+','+d+')">'+d+'</td>';cc++;}var rem=cc%7;if(rem>0)rem=7-rem;if(rem>0){var nm=jm+1,ny=jy;if(nm>12){nm=1;ny++;}for(var nd=1;nd<=rem;nd++){h+='<td class="other-month" onclick="calSelect(\''+inputId+'\','+ny+','+nm+','+nd+')">'+nd+'</td>';}}h+='</tr></tbody></table>';popup.innerHTML=h;}
+    window.calNav=function(inputId,jy,jm,delta){jm+=delta;if(jm>12){jm=1;jy++;}if(jm<1){jm=12;jy--;}renderCalPopup(inputId,jy,jm,1);};
+    window.calGoTo=function(inputId,jy,jm){renderCalPopup(inputId,parseInt(jy),parseInt(jm),1);};
+    window.calSelect=function(inputId,jy,jm,jd){var ds=jy+'/'+jm.toString().padStart(2,'0')+'/'+jd.toString().padStart(2,'0');var input=document.getElementById(inputId);if(input){input.value=ds;if(inputId==='registerDate'||inputId==='managerDate'){if(isValidPersianDate(ds)){setGlobalDate(ds);}}if(inputId==='leaveStartDate'||inputId==='leaveEndDate'){if(document.getElementById('leaveType')&&document.getElementById('leaveType').value!=='hourly'){calcLeaveDuration();}}}var popup=document.getElementById('cal_'+inputId);if(popup)popup.classList.remove('show');activeCalInput=null;};
+    function attachCalendar(inputId){var input=document.getElementById(inputId);if(!input)return;input.addEventListener('click',function(e){e.preventDefault();e.stopPropagation();openCalendar(inputId);});}
+    ['registerDate','managerDate','leaveRequestDate','leaveStartDate','leaveEndDate','reportFromDate','reportToDate','settingFirstThursday','mylogsFromDate','mylogsToDate','dashboardDate'].forEach(function(id){attachCalendar(id);});
+    document.addEventListener('click',function(e){if(activeCalInput){var popup=document.getElementById('cal_'+activeCalInput);if(popup&&!popup.contains(e.target)&&e.target!==document.getElementById(activeCalInput)){popup.classList.remove('show');activeCalInput=null;}}});
+<!-- ========== پایان بخش ۱۴ از ۲۰ ========== -->
+<!-- ========== شروع بخش ۱۵ از ۲۰ ========== -->
+    function loadSettingsInputs(){
+        try{document.getElementById('settingStartTime').value=SETTINGS.startTime||'08:00';}catch(e){}
+        try{document.getElementById('settingEndTime').value=SETTINGS.endTime||'14:00';}catch(e){}
+        try{document.getElementById('settingLateTolerance').value=SETTINGS.lateTolerance||0;}catch(e){}
+        try{document.getElementById('settingEarlyTolerance').value=SETTINGS.earlyTolerance||0;}catch(e){}
+        try{document.getElementById('settingMaxStages').value=SETTINGS.maxStages||3;}catch(e){}
+        try{document.getElementById('setHeaderFont').value=SETTINGS.headerFont||20;}catch(e){}
+        try{document.getElementById('setTabFont').value=SETTINGS.tabFont||12;}catch(e){}
+        try{document.getElementById('setNameSize').value=SETTINGS.nameSize||13;}catch(e){}
+        try{document.getElementById('setTimeFont').value=SETTINGS.timeFont||13;}catch(e){}
+        try{document.getElementById('setBtnActionFont').value=SETTINGS.btnActionFont||12;}catch(e){}
+        try{document.getElementById('setBtnMgmtFont').value=SETTINGS.btnMgmtFont||11;}catch(e){}
+        var lo=SETTINGS.leaveOptions||{};
+        try{document.getElementById('leaveOptEntitled').checked=lo.entitled!==false;}catch(e){}
+        try{document.getElementById('leaveOptSick').checked=lo.sick!==false;}catch(e){}
+        try{document.getElementById('leaveOptHourly').checked=lo.hourly!==false;}catch(e){}
+        try{document.getElementById('colorTitle').value=COLORS.title||'#2d5a2d';}catch(e){}
+        try{document.getElementById('colorCardBg').value=COLORS.cardBg||'rgba(255,255,255,0.7)';}catch(e){}
+        try{document.getElementById('colorBtnPrimaryBg').value=COLORS.btnPrimaryBg||'linear-gradient(135deg,#5a8a5a,#3a6a3a)';}catch(e){}
+        try{document.getElementById('colorBtnInBg').value=COLORS.btnInBg||'linear-gradient(135deg,#4aac4a,#3a8a3a)';}catch(e){}
+        try{document.getElementById('colorBtnOutBg').value=COLORS.btnOutBg||'linear-gradient(135deg,#d04040,#b03030)';}catch(e){}
+    }
+<!-- ========== پایان بخش ۱۵ از ۲۰ ========== -->
+<!-- ========== شروع بخش ۱۶ از ۲۰ ========== -->
+    window.registerAction = function(personnelId, type, timeOverride) {
+        if (!currentUser) return;
+        if (!(currentUser.isSuperAdmin || currentUser.role === 'guard' || currentUser.role === 'manager')) { toast('⚠️ دسترسی ندارید'); return; }
+        var date = getGlobalDate();
+        if (isOnLeave(personnelId, date)) { toast('⚠️ مرخصی روزانه'); return; }
+        if (DB.manualStatus && DB.manualStatus[personnelId] === 'absent') { toast('⚠️ غایب'); return; }
+        var time = timeOverride || nowTime();
+        var logs = getTodayLogs(personnelId, date); var stageCount = logs.length;
+        if (stageCount >= MAX_STAGES * 2) { toast('⚠️ حداکثر ' + MAX_STAGES + ' مرحله'); return; }
+        var nextAction = (stageCount === 0 || stageCount % 2 === 0) ? 'in' : 'out';
+        if (type !== nextAction) { toast('⚠️ ' + (nextAction === 'in' ? 'ابتدا ورود' : 'ابتدا خروج') + ' ثبت شود'); return; }
+        var newLog = { id: DB.nextId++, personnel_id: personnelId, type: type, date: date, time: time, registered_by: currentUser.fullName };
+        DB.logs.push(newLog);
+        saveLocalData();
+        try { sb.from('logs').insert(newLog); } catch(e) {}
+        renderAllViews(); toast('✅ ' + (type === 'in' ? 'ورود' : 'خروج') + ' ثبت شد - ' + time);
+    };
+
+    window.deleteLastLog = function(personnelId) {
+        if (!currentUser) return; var date = getGlobalDate(); var logs = getTodayLogs(personnelId, date);
+        if (!logs.length) { toast('⚠️ ثبت‌ای نیست'); return; }
+        var lastLog = logs[logs.length - 1];
+        if (confirm('حذف ' + lastLog.type + '؟')) {
+            DB.logs = DB.logs.filter(function(l) { return l.id !== lastLog.id; });
+            saveLocalData();
+            try { sb.from('logs').delete().eq('id', lastLog.id); } catch(e) {}
+            renderAllViews(); toast('🗑️ حذف شد');
+        }
+    };
+
+    function renderRegisterTable() {
+        var tbody = document.getElementById('registerTableBody'); if (!tbody) return;
+        var date = getGlobalDate(); document.getElementById('registerDate').value = date;
+        var sorted = DB.personnel.filter(function(p) { return p.role !== 'superadmin'; });
+        if (sorted.length === 0) { tbody.innerHTML = '<tr><td colspan="5" style="padding:30px;color:#888;">👥 پرسنلی ثبت نشده</td></tr>'; return; }
+        var canEdit = currentUser.isSuperAdmin || currentUser.role === 'guard' || currentUser.role === 'manager'; var html = '';
+        sorted.forEach(function(p, index) {
+            var isAbsent = DB.manualStatus && DB.manualStatus[p.id] === 'absent';
+            var isLeaveDay = isOnLeave(p.id, date);
+            var logs = isAbsent ? [] : getTodayLogs(p.id, date);
+            var stageCount = logs.length; var lastLog = logs.length ? logs[logs.length - 1] : null; var isIn = lastLog && lastLog.type === 'in';
+            var nextAction = stageCount < MAX_STAGES * 2 ? (stageCount === 0 || stageCount % 2 === 0 ? 'in' : 'out') : null;
+            var nameBadge = '';
+            if (isAbsent) { nameBadge = ' <span class="badge absent">❌ غایب</span>'; }
+            else if (isLeaveDay) { nameBadge = ' <span class="badge leave">🏖️ مرخصی</span>'; }
+            var lastInTime='',lastOutTime='';
+            for(var li=logs.length-1;li>=0;li--){if(logs[li].type==='in'&&!lastInTime)lastInTime=logs[li].time;if(logs[li].type==='out'&&!lastOutTime)lastOutTime=logs[li].time;}
+            var inDisabled=!canEdit||isAbsent||isLeaveDay||isIn;var outDisabled=!canEdit||isAbsent||isLeaveDay||!isIn;
+            html+='<tr><td style="font-weight:700;">'+(index+1)+'</td><td class="name-cell">'+p.name+nameBadge+'</td>'+
+                '<td><input type="time" class="time-input" id="regIn_'+p.id+'" value="'+lastInTime+'" '+(inDisabled?'disabled':'')+'></td>'+
+                '<td><input type="time" class="time-input" id="regOut_'+p.id+'" value="'+lastOutTime+'" '+(outDisabled?'disabled':'')+'></td>'+
+                '<td>'+(canEdit?('<button class="btn-action btn-action-in" '+(nextAction!=='in'||inDisabled?'disabled':'')+' onclick="registerAction('+p.id+',\'in\',document.getElementById(\'regIn_'+p.id+'\').value||null)">✔</button>'+
+                '<button class="btn-action btn-action-out" '+(nextAction!=='out'||outDisabled?'disabled':'')+' onclick="registerAction('+p.id+',\'out\',document.getElementById(\'regOut_'+p.id+'\').value||null)">✕</button>'+
+                (stageCount>0?'<button class="btn-action btn-action-delete" onclick="deleteLastLog('+p.id+')">🗑️</button>':'')):'—')+'</td></tr>';
+        });
+        tbody.innerHTML = html;
+    }
+
+    document.getElementById('todayDateBtn').addEventListener('click', function() { setGlobalDate(toPersianDate(new Date())); });
+    document.getElementById('prevDateBtn').addEventListener('click', function() { setGlobalDate(addDaysToJalali(getGlobalDate(), -1)); });
+    document.getElementById('nextDateBtn').addEventListener('click', function() { setGlobalDate(addDaysToJalali(getGlobalDate(), 1)); });
+    document.getElementById('managerTodayBtn').addEventListener('click', function() { setGlobalDate(toPersianDate(new Date())); });
+    document.getElementById('managerPrevBtn').addEventListener('click', function() { setGlobalDate(addDaysToJalali(getGlobalDate(), -1)); });
+    document.getElementById('managerNextBtn').addEventListener('click', function() { setGlobalDate(addDaysToJalali(getGlobalDate(), 1)); });
+<!-- ========== پایان بخش ۱۶ از ۲۰ ========== -->
+<!-- ========== شروع بخش ۱۷ از ۲۰ ========== -->
+    window.toggleCheck = function(personnelId, date) { DB.checkedLogs[personnelId + '_' + date] = !DB.checkedLogs[personnelId + '_' + date]; saveLocalData(); renderAllViews(); };
+    window.setManualStatus = function(personnelId, status) { if (!DB.manualStatus) DB.manualStatus = {}; var date = getGlobalDate(); DB.logs = DB.logs.filter(function(l) { return !(l.personnel_id === personnelId && l.date === date); }); DB.manualStatus[personnelId] = status; saveLocalData(); renderAllViews(); };
+    window.clearManualStatus = function(personnelId) { if (DB.manualStatus) delete DB.manualStatus[personnelId]; saveLocalData(); renderAllViews(); };
+
+    function renderManagerTable() {
+        var tbody = document.getElementById('managerTableBody'); if (!tbody) return;
+        var date = document.getElementById('managerDate').value || getGlobalDate(); if (!isValidPersianDate(date)) date = getGlobalDate();
+        if (!(currentUser.role === 'manager' || currentUser.isSuperAdmin)) { tbody.innerHTML = '<tr><td colspan="6">⚠️ فقط مدیر</td></tr>'; return; }
+        var personnel = DB.personnel.filter(function(p) { return p.role !== 'superadmin'; }); if (personnel.length === 0) { tbody.innerHTML = '<tr><td colspan="6">👥 پرسنلی نیست</td></tr>'; return; }
+        var html = '';
+        personnel.forEach(function(p) {
+            var isAbsent = DB.manualStatus && DB.manualStatus[p.id] === 'absent';
+            var isLeaveDay = isOnLeave(p.id, date);
+            var logs = isAbsent ? [] : getTodayLogs(p.id, date);
+            var status = getStatusForDay(p.id, date);
+            var inHtml = '', outHtml = '';
+            logs.forEach(function(l) { if (l.type === 'in') inHtml += (inHtml ? '<br>' : '') + l.time; if (l.type === 'out') outHtml += (outHtml ? '<br>' : '') + l.time; });
+            html += '<tr><td><input type="checkbox" class="manager-check" ' + (isChecked(p.id, date) ? 'checked' : '') + ' onchange="toggleCheck(' + p.id + ',\'' + date + '\')"></td>' +
+                '<td class="name-cell">' + p.name + '</td><td>' + (inHtml || '—') + '</td><td>' + (outHtml || '—') + '</td>' +
+                '<td><span class="status-title ' + status.cls + '">' + status.label + '</span></td>' +
+                '<td><button class="btn-mgmt leave" onclick="openManualLeaveDialog(' + p.id + ')">🏖️</button><button class="btn-mgmt absent" onclick="setManualStatus(' + p.id + ',\'absent\')">🚫</button>' + (isAbsent || isLeaveDay ? '<button class="btn-mgmt clear" onclick="clearManualStatus(' + p.id + ')">↩️</button>' : '') + '</td></tr>';
+        });
+        tbody.innerHTML = html;
+    }
+
+    window.openManualLeaveDialog = function(personnelId) {
+        var lo = SETTINGS.leaveOptions || { entitled:true, sick:true, hourly:true };
+        var typeHtml = '';
+        if (lo.entitled !== false) typeHtml += '<option value="entitled">' + LEAVE_TYPE_LABELS.entitled + '</option>';
+        if (lo.sick !== false) typeHtml += '<option value="sick">' + LEAVE_TYPE_LABELS.sick + '</option>';
+        if (lo.hourly !== false) typeHtml += '<option value="hourly">' + LEAVE_TYPE_LABELS.hourly + '</option>';
+        var overlay = openSheet('<h3>⏰ ثبت مرخصی</h3><div class="field"><label>📋 نوع</label><select id="mLeaveType">' + typeHtml + '</select></div>' +
+            '<div id="mLeaveHourFields" style="display:none;"><div class="field-row"><div class="field"><label>⏰ شروع</label><input type="time" id="mLeaveHourStart"></div><div class="field"><label>⏰ پایان</label><input type="time" id="mLeaveHourEnd"></div></div></div>' +
+            '<div class="field"><label>📅 شروع</label><div class="calendar-container"><input type="text" id="mLeaveStartDate" class="date-input" placeholder="1403/06/15"><div class="calendar-popup" id="cal_mLeaveStartDate"></div></div></div>' +
+            '<div class="field"><label>📅 پایان</label><div class="calendar-container"><input type="text" id="mLeaveEndDate" class="date-input" placeholder="1403/06/20"><div class="calendar-popup" id="cal_mLeaveEndDate"></div></div></div>' +
+            '<button class="btn btn-primary" id="saveManualLeaveBtn">ثبت</button>');
+        setTimeout(function() {
+            attachCalendar('mLeaveStartDate');attachCalendar('mLeaveEndDate');
+            document.getElementById('mLeaveType').onchange = function() { document.getElementById('mLeaveHourFields').style.display = this.value === 'hourly' ? 'block' : 'none'; };
+            document.getElementById('saveManualLeaveBtn').addEventListener('click', function() {
+                var type = document.getElementById('mLeaveType').value;
+                var startDate = document.getElementById('mLeaveStartDate').value;
+                var endDate = document.getElementById('mLeaveEndDate').value;
+                if (!startDate || !endDate) { toast('⚠️ تاریخ را وارد کنید'); return; }
+                var hourStart = type === 'hourly' ? document.getElementById('mLeaveHourStart').value : '';
+                var hourEnd = type === 'hourly' ? document.getElementById('mLeaveHourEnd').value : '';
+                if (!DB.leaveDetails) DB.leaveDetails = {};
+                if (!DB.leaveDetails[personnelId] || !Array.isArray(DB.leaveDetails[personnelId])) DB.leaveDetails[personnelId] = [];
+                DB.leaveDetails[personnelId].push({ type: type, hourStart: hourStart, hourEnd: hourEnd, startDate: startDate, endDate: endDate });
+                saveLocalData();
+                if (overlay && overlay.remove) overlay.remove();
+                renderAllViews(); toast('⏰ مرخصی ثبت شد');
+            });
+        }, 100);
+    };
+<!-- ========== پایان بخش ۱۷ از ۲۰ ========== -->
+<!-- ========== شروع بخش ۱۸ از ۲۰ ========== -->
+    function populateMylogsSelect() {
+        var s = document.getElementById('mylogsPersonnelSelect');if (!s) return;
+        var pn = DB.personnel.filter(function(p) { return p.role !== 'superadmin'; });
+        var options=[{value:'',label:'— انتخاب کنید —'}];
+        var h = '<option value="">— انتخاب کنید —</option>';
+        pn.forEach(function(p) { h += '<option value="' + p.id + '">' + p.name + '</option>'; options.push({value:p.id.toString(),label:p.name}); });
+        s.innerHTML = h;
+        if(!s._ssCreated){ createSearchSelect(s,options,'جستجو...'); s._ssCreated=true; } else if(s.updateOptions){ s.updateOptions(options); }
+        s.onchange = function() { populateMylogsYearFilter(); };
+        populateMylogsYearFilter();
+    }
+    function populateMylogsYearFilter() {
+        var pid = parseInt(document.getElementById('mylogsPersonnelSelect').value);
+        var ySel = document.getElementById('mylogsYearFilter'); if (!ySel) return;
+        var logs = pid ? DB.logs.filter(function(l) { return l.personnel_id === pid; }) : [];
+        var years = {}; logs.forEach(function(l) { var p = l.date.split('/'); if (p.length === 3) years[p[0]] = true; });
+        var yKeys = Object.keys(years).sort().reverse();
+        var h = '<option value="">همه</option>'; yKeys.forEach(function(y) { h += '<option value="' + y + '">' + y + '</option>'; });
+        ySel.innerHTML = h; ySel.onchange = function() { populateMylogsMonthFilter(); }; populateMylogsMonthFilter();
+    }
+    function populateMylogsMonthFilter() {
+        var mSel = document.getElementById('mylogsMonthFilter'); if (!mSel) return;
+        var mn = ['فروردین','اردیبهشت','خرداد','تیر','مرداد','شهریور','مهر','آبان','آذر','دی','بهمن','اسفند'];
+        var h = '<option value="">همه</option>'; for (var m = 1; m <= 12; m++) { h += '<option value="' + m + '">' + mn[m-1] + '</option>'; }
+        mSel.innerHTML = h; mSel.onchange = function() { renderMyLogs(); };
+        document.getElementById('mylogsFromDate').value = ''; document.getElementById('mylogsToDate').value = '';
+        renderMyLogs();
+    }
+    function renderMyLogs() {
+        var c = document.getElementById('mylogsList');if (!c) return;
+        var s = document.getElementById('mylogsPersonnelSelect');if (!s) return;
+        var id = parseInt(s.value); if (!id) { c.innerHTML = '<div style="padding:30px;color:#888;">پرسنل انتخاب کنید</div>'; return; }
+        var p = DB.personnel.find(function(x) { return x.id === id; });
+        var logs = DB.logs.filter(function(l) { return l.personnel_id === id; }).sort(function(a, b) { return b.id - a.id; });
+        if (!logs.length) { c.innerHTML = '<div style="padding:30px;color:#888;">سابقه‌ای نیست</div>'; return; }
+        var h = '<div class="card"><div class="card-title">📋 سوابق ' + (p ? p.name : '') + '</div></div>';
+        h += '<div class="personnel-table-wrap"><table class="personnel-table"><thead><tr><th>#</th><th>تاریخ</th><th>ورود</th><th>خروج</th><th>وضعیت</th></tr></thead><tbody>';
+        var dm = {}; logs.forEach(function(l) { if (!dm[l.date]) dm[l.date] = { inTimes: [], outTimes: [] }; if (l.type === 'in') dm[l.date].inTimes.push(l.time); if (l.type === 'out') dm[l.date].outTimes.push(l.time); });
+        var dates = Object.keys(dm).sort().reverse();
+        dates.forEach(function(d, i) {
+            var dd = dm[d]; var st = dd.outTimes.length > 0 ? '<span class="status-title completed">✅ خارج شد</span>' : '<span class="status-title inprogress">⏳ در حال کار</span>';
+            h += '<tr><td>' + (i+1) + '</td><td>' + d + '</td><td style="color:#207020;">' + (dd.inTimes.join('<br>') || '—') + '</td><td style="color:#a03030;">' + (dd.outTimes.join('<br>') || '—') + '</td><td>' + st + '</td></tr>';
+        });
+        h += '</tbody></table></div>'; c.innerHTML = h;
+    }
+    document.getElementById('mylogsFilterBtn').addEventListener('click', function() { renderMyLogs(); });
+    document.getElementById('mylogsPrintBtn').addEventListener('click', function() { window.print(); });
+
+    function renderLeaveRequests() {
+        if(!currentUser)return;
+        document.getElementById('leaveRequestDate').value=getGlobalDate();
+        document.getElementById('leaveStartDate').value=getGlobalDate();
+        document.getElementById('leaveEndDate').value=getGlobalDate();
+        var sl=document.getElementById('leaveFullName');
+        var pn=DB.personnel.filter(function(p){return p.role!=='superadmin';});
+        var isAdmin=currentUser.isSuperAdmin||currentUser.role==='manager';
+        var options=[];
+        if(isAdmin){
+            options=[{value:'',label:'— انتخاب کنید —'}];
+            pn.forEach(function(p){options.push({value:p.name,label:p.name});});
+            sl.innerHTML='<option value="">— انتخاب کنید —</option>';
+            pn.forEach(function(p){var opt=document.createElement('option');opt.value=p.name;opt.textContent=p.name;sl.appendChild(opt);});
+            sl.value='';sl.disabled=false;
+            if(!sl._ssCreated){createSearchSelect(sl,options,'جستجو...');sl._ssCreated=true;}else if(sl.updateOptions){sl.updateOptions(options);}
+        }else{
+            var mp=pn.find(function(p){return p.name===currentUser.fullName;});
+            sl.innerHTML=mp?'<option value="'+mp.name+'" selected>'+mp.name+'</option>':'<option value="'+currentUser.fullName+'" selected>'+currentUser.fullName+'</option>';
+            sl.disabled=true;
+        }
+        document.getElementById('leaveNationalCode').value='';document.getElementById('leaveSection').value='';
+        document.getElementById('leaveReason').value='';document.getElementById('leaveDescription').value='';
+        document.getElementById('leaveHourFields').style.display='none';
+        populateLeaveSelects();
+        document.getElementById('leaveType').onchange=function(){var ih=this.value==='hourly';document.getElementById('leaveHourFields').style.display=ih?'flex':'none';if(ih)calcHourDuration();else calcLeaveDuration();};
+        document.getElementById('leaveStartDate').onchange=function(){if(document.getElementById('leaveType').value!=='hourly')calcLeaveDuration();};
+        document.getElementById('leaveEndDate').onchange=function(){if(document.getElementById('leaveType').value!=='hourly')calcLeaveDuration();};
+        document.getElementById('leaveHourStart').onchange=calcHourDuration;
+        document.getElementById('leaveHourEnd').onchange=calcHourDuration;
+        if(document.getElementById('leaveType').value==='hourly'){document.getElementById('leaveHourFields').style.display='flex';calcHourDuration();}else{calcLeaveDuration();}
+    }
+    function calcLeaveDuration(){var sd=document.getElementById('leaveStartDate').value;var ed=document.getElementById('leaveEndDate').value;if(sd&&ed&&isValidPersianDate(sd)&&isValidPersianDate(ed)){var sG=persianToGregorian(sd),eG=persianToGregorian(ed);if(sG&&eG){var wd=0;var cur=new Date(sG);while(cur<=eG){var ds=toPersianDate(cur);if(!isFriday(ds)&&!(isThursday(ds)&&!isWorkingThursday(ds)))wd++;cur.setDate(cur.getDate()+1);}document.getElementById('leaveDuration').value=wd+' روز';}}else{document.getElementById('leaveDuration').value='';}}
+    function calcHourDuration(){var hs=document.getElementById('leaveHourStart').value,he=document.getElementById('leaveHourEnd').value;if(hs&&he){var hsm=timeToMinutes(hs),hem=timeToMinutes(he);if(hsm!==null&&hem!==null&&hem>hsm){var h=Math.floor((hem-hsm)/60),m=(hem-hsm)%60;document.getElementById('leaveDuration').value=h+':'+m.toString().padStart(2,'0')+' ساعت';}}else{document.getElementById('leaveDuration').value='';}}
+    function populateLeaveSelects(){var lo=SETTINGS.leaveOptions||{entitled:true,sick:true,hourly:true};var ts=document.getElementById('leaveType');if(ts){var th='';if(lo.entitled!==false)th+='<option value="entitled">'+LEAVE_TYPE_LABELS.entitled+'</option>';if(lo.sick!==false)th+='<option value="sick">'+LEAVE_TYPE_LABELS.sick+'</option>';if(lo.hourly!==false)th+='<option value="hourly">'+LEAVE_TYPE_LABELS.hourly+'</option>';ts.innerHTML=th;}}
+    document.getElementById('submitLeaveRequestBtn').addEventListener('click',function(){
+        if(!currentUser)return;
+        var fn=document.getElementById('leaveFullName').getValue?document.getElementById('leaveFullName').getValue():document.getElementById('leaveFullName').value;
+        var sd=document.getElementById('leaveStartDate').value;
+        var ed=document.getElementById('leaveEndDate').value;
+        var lt=document.getElementById('leaveType').value;
+        if(!fn||!sd||!ed){toast('⚠️ فیلدهای ضروری را پر کنید');return;}
+        var nr={id:DB.leaveRequests.length+1,user_id:currentUser.userId,full_name:fn.trim(),start_date:sd,end_date:ed,type:lt,status:'pending'};
+        DB.leaveRequests.push(nr);saveLocalData();renderAllViews();toast('📤 ارسال شد');
+    });
+<!-- ========== پایان بخش ۱۸ از ۲۰ ========== -->
+<!-- ========== شروع بخش ۱۹ از ۲۰ ========== -->
+    function renderPersonnelMgmt(){
+        var tb=document.getElementById('personnelMgmtBody');if(!tb)return;
+        if(!currentUser.isSuperAdmin){tb.innerHTML='<tr><td colspan="5">⚠️ فقط ادمین</td></tr>';return;}
+        var pn=DB.personnel.filter(function(p){return p.role!=='superadmin';});
+        if(!pn.length){tb.innerHTML='<tr><td colspan="5">👥 پرسنلی نیست</td></tr>';return;}
+        tb.innerHTML=pn.map(function(p,i){return'<tr><td>'+(i+1)+'</td><td class="name-cell">'+p.name+'</td><td>'+(p.shift==='night'?'🌙 شب‌کار':'☀️ روزکار')+'</td><td>'+(p.approver_type==='supervisor'?'سرپرست + مدیر':'مدیر مستقیم')+'</td><td><button class="btn btn-ghost btn-sm" onclick="editPersonnel('+p.id+')">✏️</button> <button class="btn btn-danger btn-sm" onclick="deletePersonnel('+p.id+')">🗑️</button></td></tr>';}).join('');
+    }
+    document.getElementById('addPersonnelBtn').addEventListener('click',function(){
+        var ov=openSheet('<h3>➕ افزودن پرسنل</h3><div class="field"><label>نام</label><input id="newPersonnelName"></div><div class="field"><label>شیفت</label><select id="newPersonnelShift"><option value="day">☀️ روزکار</option><option value="night">🌙 شب‌کار</option></select></div><div class="field"><label>تأیید کننده</label><select id="newPersonnelApprover"><option value="manager">مدیر مستقیم</option><option value="supervisor">سرپرست + مدیر</option></select></div><button class="btn btn-primary" id="savePersonnelBtn">ثبت</button>');
+        setTimeout(function(){document.getElementById('savePersonnelBtn').addEventListener('click',function(){
+            var n=document.getElementById('newPersonnelName').value.trim();if(!n)return;
+            var mi=DB.personnel.length>0?Math.max.apply(null,DB.personnel.map(function(p){return p.id;})):0;
+            var np={id:mi+1,name:n,shift:document.getElementById('newPersonnelShift').value,approver_type:document.getElementById('newPersonnelApprover').value};
+            DB.personnel.push(np);saveLocalData();try{sb.from('personnel').insert(np);}catch(e){}
+            if(ov&&ov.remove)ov.remove();renderAllViews();toast('✅ اضافه شد');
+        });},100);
+    });
+    window.editPersonnel=function(id){
+        var p=DB.personnel.find(function(x){return x.id===id;});if(!p)return;
+        var ov=openSheet('<h3>✏️ ویرایش</h3><div class="field"><label>نام</label><input id="editPersonnelName" value="'+p.name+'"></div><div class="field"><label>شیفت</label><select id="editPersonnelShift"><option value="day" '+(p.shift==='day'?'selected':'')+'>☀️ روزکار</option><option value="night" '+(p.shift==='night'?'selected':'')+'>🌙 شب‌کار</option></select></div><div class="field"><label>تأیید کننده</label><select id="editPersonnelApprover"><option value="manager" '+(p.approver_type==='manager'?'selected':'')+'>مدیر مستقیم</option><option value="supervisor" '+(p.approver_type==='supervisor'?'selected':'')+'>سرپرست + مدیر</option></select></div><button class="btn btn-primary" id="saveEditPersonnelBtn">ذخیره</button>');
+        setTimeout(function(){document.getElementById('saveEditPersonnelBtn').addEventListener('click',function(){
+            p.name=document.getElementById('editPersonnelName').value.trim()||p.name;
+            p.shift=document.getElementById('editPersonnelShift').value;
+            p.approver_type=document.getElementById('editPersonnelApprover').value;
+            saveLocalData();try{sb.from('personnel').upsert(p);}catch(e){}
+            if(ov&&ov.remove)ov.remove();renderAllViews();
+        });},100);
+    };
+    window.deletePersonnel=function(id){if(confirm('حذف؟')){DB.personnel=DB.personnel.filter(function(p){return p.id!==id;});saveLocalData();renderAllViews();}};
+    function renderUsersList(){
+        var c=document.getElementById('usersList');if(!c)return;
+        var lu=JSON.parse(localStorage.getItem('tatSabz_local_users')||'[]');
+        c.innerHTML=lu.map(function(u){return'<div class="card"><div><strong>'+u.fullName+'</strong><br><small>'+u.email+' · '+ROLE_LABELS[u.role]+'</small></div></div>';}).join('');
+    }
+    document.getElementById('addUserBtn').addEventListener('click',function(){
+        var ov=openSheet('<h3>➕ افزودن کاربر</h3><div class="field"><label>نام کامل</label><input id="newUserFullName"></div><div class="field"><label>ایمیل</label><input id="newUserEmail" type="email"></div><div class="field"><label>رمز عبور</label><input id="newUserPassword" type="password"></div><div class="field"><label>نقش</label><select id="newUserRole"><option value="manager">👤 مدیر</option><option value="guard">🛡️ نگهبان</option><option value="staff">👥 کارمند</option></select></div><button class="btn btn-primary" id="saveNewUserBtn">ثبت</button>');
+        setTimeout(function(){document.getElementById('saveNewUserBtn').addEventListener('click',function(){
+            var fn=document.getElementById('newUserFullName').value.trim();
+            var em=document.getElementById('newUserEmail').value.trim();
+            var pw=document.getElementById('newUserPassword').value.trim();
+            if(!fn||!em||!pw){toast('⚠️ پر کنید');return;}
+            // ذخیره توی localStorage
+            var lu=JSON.parse(localStorage.getItem('tatSabz_local_users')||'[]');
+            var mi=lu.length>0?Math.max.apply(null,lu.map(function(u){return u.id;})):0;
+            lu.push({id:mi+1,email:em,password:pw,fullName:fn,role:document.getElementById('newUserRole').value,permissions:['dashboard']});
+            localStorage.setItem('tatSabz_local_users',JSON.stringify(lu));
+            // ذخیره توی Supabase
+            try { sb.auth.signUp({ email: em, password: pw }); } catch(e) {}
+            if(ov&&ov.remove)ov.remove();renderUsersList();toast('✅ کاربر اضافه شد - میتونه با این ایمیل و رمز لاگین کنه');
+        });},100);
+    });
+<!-- ========== پایان بخش ۱۹ از ۲۰ ========== -->
+<!-- ========== شروع بخش ۲۰ از ۲۰ ========== -->
+    document.getElementById('saveSettingsBtn').addEventListener('click',function(){
+        var el;
+        el=document.getElementById('settingStartTime');if(el)SETTINGS.startTime=el.value;
+        el=document.getElementById('settingEndTime');if(el)SETTINGS.endTime=el.value;
+        el=document.getElementById('settingLateTolerance');if(el)SETTINGS.lateTolerance=parseInt(el.value)||0;
+        el=document.getElementById('settingEarlyTolerance');if(el)SETTINGS.earlyTolerance=parseInt(el.value)||0;
+        el=document.getElementById('settingMaxStages');if(el)SETTINGS.maxStages=parseInt(el.value)||3;
+        el=document.getElementById('setHeaderFont');if(el)SETTINGS.headerFont=parseInt(el.value)||20;
+        el=document.getElementById('setTabFont');if(el)SETTINGS.tabFont=parseInt(el.value)||12;
+        el=document.getElementById('setNameSize');if(el)SETTINGS.nameSize=parseInt(el.value)||13;
+        el=document.getElementById('setTimeFont');if(el)SETTINGS.timeFont=parseInt(el.value)||13;
+        el=document.getElementById('setBtnActionFont');if(el)SETTINGS.btnActionFont=parseInt(el.value)||12;
+        el=document.getElementById('setBtnMgmtFont');if(el)SETTINGS.btnMgmtFont=parseInt(el.value)||11;
+        SETTINGS.leaveOptions={};
+        el=document.getElementById('leaveOptEntitled');if(el)SETTINGS.leaveOptions.entitled=el.checked;
+        el=document.getElementById('leaveOptSick');if(el)SETTINGS.leaveOptions.sick=el.checked;
+        el=document.getElementById('leaveOptHourly');if(el)SETTINGS.leaveOptions.hourly=el.checked;
+        el=document.getElementById('colorTitle');if(el)COLORS.title=el.value;
+        el=document.getElementById('colorCardBg');if(el)COLORS.cardBg=el.value;
+        el=document.getElementById('colorBtnPrimaryBg');if(el)COLORS.btnPrimaryBg=el.value;
+        el=document.getElementById('colorBtnInBg');if(el)COLORS.btnInBg=el.value;
+        el=document.getElementById('colorBtnOutBg');if(el)COLORS.btnOutBg=el.value;
+        MAX_STAGES=SETTINGS.maxStages||3;
+        applyAllStyles();loadSettingsInputs();renderAllViews();toast('✅ تنظیمات ذخیره شد');
+    });
+    document.getElementById('clearAllLogsBtn').addEventListener('click',function(){if(confirm('همه لاگ‌ها حذف شوند؟')){DB.logs=[];DB.nextId=100;saveLocalData();renderAllViews();toast('🗑️ حذف شدند');}});
+    document.getElementById('exportDataMenuBtn').addEventListener('click',function(){
+        var d={personnel:DB.personnel,logs:DB.logs};var a=document.createElement('a');
+        a.href=URL.createObjectURL(new Blob([JSON.stringify(d)],{type:'application/json'}));
+        a.download='backup_'+getGlobalDate().replace(/\//g,'-')+'.json';a.click();toast('✅ ذخیره شد');
+    });
+    document.getElementById('importDataMenuBtn').addEventListener('click',function(){document.getElementById('importFileInput').click();});
+    document.getElementById('importFileInput').addEventListener('change',function(e){
+        var f=e.target.files[0];if(!f)return;var r=new FileReader();
+        r.onload=function(ev){try{var d=JSON.parse(ev.target.result);if(confirm('جایگزینی؟')){DB.personnel=d.personnel||[];DB.logs=d.logs||[];DB.nextId=Math.max.apply(null,d.logs.map(function(l){return l.id;}).concat([0]))+1;saveLocalData();renderAllViews();toast('✅ وارد شد');}}catch(err){toast('⚠️ خطا');}};r.readAsText(f);this.value='';
+    });
+    document.getElementById('changePassMenuBtn').addEventListener('click',function(){
+        var ov=openSheet('<h3>🔑 تغییر رمز</h3><div class="field"><label>رمز جدید</label><input id="changeNewPass" type="password"></div><button class="btn btn-primary" id="saveChangePassBtn">ذخیره</button>');
+        setTimeout(function(){document.getElementById('saveChangePassBtn').addEventListener('click',function(){
+            var pw=document.getElementById('changeNewPass').value;if(!pw)return;
+            var lu=JSON.parse(localStorage.getItem('tatSabz_local_users')||'[]');
+            var cu=lu.find(function(u){return u.id===currentUser.userId;});
+            if(cu){cu.password=pw;localStorage.setItem('tatSabz_local_users',JSON.stringify(lu));}
+            if(ov&&ov.remove)ov.remove();toast('✅ تغییر کرد');
+        });},100);
+    });
+    document.getElementById('resetDataMenuBtn').addEventListener('click',function(){if(confirm('بازنشانی کامل؟')){localStorage.clear();location.reload();}});
+
+    function showReport(){
+        var c=document.getElementById('reportResult');
+        var fd=document.getElementById('reportFromDate').value;
+        var td=document.getElementById('reportToDate').value;
+        if(!fd)fd=getGlobalDate();if(!td)td=getGlobalDate();
+        document.getElementById('reportFromDate').value=fd;document.getElementById('reportToDate').value=td;
+        if(!isValidPersianDate(fd)||!isValidPersianDate(td)){c.innerHTML='<div class="card" style="text-align:center;padding:30px;">⚠️ تاریخ نامعتبر</div>';return;}
+        var logs=DB.logs.filter(function(l){return l.date>=fd&&l.date<=td;});
+        if(!logs.length){c.innerHTML='<div class="card" style="text-align:center;padding:30px;">📭 داده‌ای نیست</div>';return;}
+        var h='<div class="card"><div class="card-title">📊 گزارش از '+fd+' تا '+td+'</div></div><div class="personnel-table-wrap"><table class="personnel-table"><thead><tr><th>نام</th><th>تاریخ</th><th>ورود</th><th>خروج</th></tr></thead><tbody>';
+        logs.forEach(function(l){h+='<tr><td>'+getPersonnelName(l.personnel_id)+'</td><td>'+l.date+'</td><td>'+(l.type==='in'?l.time:'—')+'</td><td>'+(l.type==='out'?l.time:'—')+'</td></tr>';});
+        h+='</tbody></table></div>';c.innerHTML=h;
+    }
+    document.getElementById('reportTodayBtn').addEventListener('click',function(){var t=toPersianDate(new Date());document.getElementById('reportFromDate').value=t;document.getElementById('reportToDate').value=t;showReport();});
+    document.getElementById('reportWeekBtn').addEventListener('click',function(){var d=new Date();var dow=d.getDay();var so=dow===6?0:-(dow+1);var sa=new Date(d);sa.setDate(d.getDate()+so);var fr=new Date(sa);fr.setDate(sa.getDate()+6);document.getElementById('reportFromDate').value=toPersianDate(sa);document.getElementById('reportToDate').value=toPersianDate(fr);showReport();});
+    document.getElementById('reportMonthBtn').addEventListener('click',function(){var td=new Date();var j=gregorianToJalali(td.getFullYear(),td.getMonth()+1,td.getDate());var ld=getJalaliMonthDays(j[0],j[1]);document.getElementById('reportFromDate').value=j[0]+'/'+j[1].toString().padStart(2,'0')+'/01';document.getElementById('reportToDate').value=j[0]+'/'+j[1].toString().padStart(2,'0')+'/'+ld.toString().padStart(2,'0');showReport();});
+    document.getElementById('showReportBtn').addEventListener('click',showReport);
+
+    function createSearchSelect(selectElement, options, placeholder) {
+        if (!selectElement || selectElement._ssCreated) return;
+        selectElement._ssCreated = true;
+        var parent = selectElement.parentNode;
+        var wrapper = document.createElement('div');
+        wrapper.style.cssText = 'position:relative;width:100%;';
+        var input = document.createElement('input');
+        input.type = 'text'; input.autocomplete = 'off'; input.placeholder = placeholder || 'جستجو...';
+        input.style.cssText = 'width:100%;padding:var(--input-pad);border:2px solid #c8d8c8;border-radius:var(--radius-sm);font-size:var(--input-font);font-family:var(--font-primary);background:rgba(255,255,255,0.7);color:#1e293b;text-align:center;cursor:pointer;outline:none;';
+        var sel = selectElement.options[selectElement.selectedIndex];
+        if (sel && sel.value) { input.value = sel.text; input.setAttribute('data-value', sel.value); }
+        var dropdown = document.createElement('div');
+        dropdown.style.cssText = 'display:none;position:absolute;z-index:9999;top:100%;left:0;right:0;max-height:200px;overflow-y:auto;background:rgba(255,255,255,0.98);border:1px solid rgba(90,138,90,0.3);border-radius:var(--radius-sm);box-shadow:var(--shadow-lg);';
+        function rd(ft) {
+            dropdown.innerHTML = '';
+            var f = (ft || '').toLowerCase();
+            var filtered = f ? options.filter(function(o) { return o.label.toLowerCase().indexOf(f) !== -1; }) : options.slice();
+            if (filtered.length === 0) { dropdown.innerHTML = '<div style="padding:10px;color:#888;">موردی یافت نشد</div>'; }
+            else { filtered.forEach(function(o) { var item = document.createElement('div'); item.style.cssText = 'padding:8px 12px;cursor:pointer;font-size:13px;text-align:center;'; item.textContent = o.label; item.addEventListener('mousedown', function(e) { e.preventDefault(); input.value = o.label; input.setAttribute('data-value', o.value); selectElement.value = o.value; selectElement.dispatchEvent(new Event('change', { bubbles: true })); dropdown.style.display = 'none'; input.blur(); }); dropdown.appendChild(item); }); }
+        }
+        input.addEventListener('click', function() { dropdown.style.display = dropdown.style.display === 'block' ? 'none' : 'block'; if(dropdown.style.display === 'block') rd(''); });
+        input.addEventListener('input', function() { rd(input.value); dropdown.style.display = 'block'; });
+        input.addEventListener('blur', function() { setTimeout(function() { dropdown.style.display = 'none'; }, 200); });
+        wrapper.appendChild(input); wrapper.appendChild(dropdown);
+        selectElement.style.display = 'none'; parent.insertBefore(wrapper, selectElement);
+        selectElement.updateOptions = function(o) { options = o; };
+        selectElement.setValue = function(v, l) { input.value = l || ''; selectElement.value = v || ''; };
+        selectElement.getValue = function() { return input.getAttribute('data-value') || ''; };
+    }
+
+    function initApp() {
+        var saved = localStorage.getItem('tatSabz_session');
+        if (saved) { currentUser = JSON.parse(saved); loadLocalData(); showApp(); }
+        else { showLogin(); }
+    }
+    initApp();
+})();
+}, 2000);
+</script>
+</body>
+</html>
+<!-- ========== پایان بخش ۲۰ از ۲۰ ========== -->
