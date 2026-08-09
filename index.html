@@ -770,8 +770,65 @@
 
     function openSheet(html){ var oldOverlay=document.querySelector('.sheet-overlay');if(oldOverlay)oldOverlay.remove(); var overlay=document.createElement('div');overlay.className='sheet-overlay active'; var sheet=document.createElement('div');sheet.className='sheet'; sheet.innerHTML='<div class="sheet-handle"></div><button class="close-btn" id="sheetCloseBtn">✕</button>'+html; overlay.appendChild(sheet);document.getElementById('app').appendChild(overlay); overlay.addEventListener('click',function(e){if(e.target===overlay)overlay.remove();}); var closeBtn=document.getElementById('sheetCloseBtn');if(closeBtn)closeBtn.addEventListener('click',function(){overlay.remove();}); return overlay; }
     document.querySelectorAll('.config-tab').forEach(function(tab){tab.addEventListener('click',function(){document.querySelectorAll('.config-tab').forEach(function(t){t.classList.remove('active');t.style.background='rgba(240,245,240,0.6)';t.style.color='#5a7a5a';});this.classList.add('active');this.style.background='rgba(90,138,90,0.12)';this.style.color='#3a6a3a';document.querySelectorAll('.config-content').forEach(function(c){c.style.display='none';});var t=document.getElementById(this.getAttribute('data-tab'));if(t)t.style.display='block';});});
+<!-- ========== شروع بخش ۱۶ از ۲۰ ========== -->
+    function applyAllStyles() {
+        var r = document.querySelector(':root');
+        r.style.setProperty('--header-font', SETTINGS.headerFont+'px');r.style.setProperty('--header-pad', SETTINGS.headerPad);
+        r.style.setProperty('--tab-font', SETTINGS.tabFont+'px');r.style.setProperty('--tab-pad', SETTINGS.tabPad);
+        r.style.setProperty('--name-font', SETTINGS.nameSize+'px');r.style.setProperty('--time-width', SETTINGS.timeWidth+'px');
+        r.style.setProperty('--time-height', SETTINGS.timeHeight+'px');r.style.setProperty('--time-font', SETTINGS.timeFont+'px');
+        r.style.setProperty('--btn-action-font', SETTINGS.btnActionFont+'px');r.style.setProperty('--btn-action-pad', Math.max(2,SETTINGS.btnActionFont-4)+'px '+Math.max(4,SETTINGS.btnActionFont-1)+'px');
+        r.style.setProperty('--btn-mgmt-font', SETTINGS.btnMgmtFont+'px');r.style.setProperty('--btn-mgmt-pad', Math.max(2,SETTINGS.btnMgmtFont-4)+'px '+Math.max(4,SETTINGS.btnMgmtFont-1)+'px');
+        r.style.setProperty('--status-font', SETTINGS.statusFont+'px');r.style.setProperty('--status-pad', SETTINGS.statusPad);
+        r.style.setProperty('--check-size', SETTINGS.checkSize+'px');r.style.setProperty('--badge-font', SETTINGS.badgeFont+'px');
+        r.style.setProperty('--badge-pad', SETTINGS.badgePad);r.style.setProperty('--input-font', SETTINGS.inputFont+'px');
+        r.style.setProperty('--input-pad', SETTINGS.inputPad);r.style.setProperty('--card-title-font', SETTINGS.cardTitleFont+'px');
+        r.style.setProperty('--card-sub-font', SETTINGS.cardSubFont+'px');r.style.setProperty('--card-pad', SETTINGS.cardPad);
+        r.style.setProperty('--table-th-font', SETTINGS.tableThFont+'px');r.style.setProperty('--table-th-pad', SETTINGS.tableThPad);
+        r.style.setProperty('--table-td-pad', SETTINGS.tableTdPad);r.style.setProperty('--row-height', SETTINGS.rowHeight+'px');
+        r.style.setProperty('--row-gap', SETTINGS.rowGap+'px');
+        r.style.setProperty('--color-header-bg', COLORS.headerBg);r.style.setProperty('--color-title', COLORS.title);
+        r.style.setProperty('--color-tab-bg', COLORS.tabBg);r.style.setProperty('--color-tab-text', COLORS.tabText);
+        r.style.setProperty('--color-tab-active-bg', COLORS.tabActiveBg);r.style.setProperty('--color-tab-active-text', COLORS.tabActiveText);
+        r.style.setProperty('--color-tab-active-border', COLORS.tabActiveBorder);r.style.setProperty('--color-card-bg', COLORS.cardBg);
+        r.style.setProperty('--color-card-border', COLORS.cardBorder);r.style.setProperty('--color-btn-primary-bg', COLORS.btnPrimaryBg);
+        r.style.setProperty('--color-btn-primary-text', COLORS.btnPrimaryText);r.style.setProperty('--color-btn-in-bg', COLORS.btnInBg);
+        r.style.setProperty('--color-btn-out-bg', COLORS.btnOutBg);r.style.setProperty('--color-status-completed-bg', COLORS.statusCompletedBg);
+        r.style.setProperty('--color-status-completed-text', COLORS.statusCompletedText);r.style.setProperty('--color-status-inprogress-bg', COLORS.statusInprogressBg);
+        r.style.setProperty('--color-status-inprogress-text', COLORS.statusInprogressText);
+        r.style.setProperty('--color-status-late-bg', COLORS.statusLateBg);r.style.setProperty('--color-status-early-bg', COLORS.statusEarlyBg);
+        r.style.setProperty('--color-hourly-leave', COLORS.hourlyLeaveColor);
+        r.style.setProperty('--page-bg', COLORS.pageBg);r.style.setProperty('--text-color', COLORS.textColor);
+        updateColorCircles();
+    }
+    function updateColorCircles() {
+        var keys = ['headerBg','title','tabBg','tabText','tabActiveBg','tabActiveText','tabActiveBorder','cardBg','cardBorder','btnPrimaryBg','btnPrimaryText','btnInBg','btnOutBg','statusCompletedBg','statusCompletedText','statusInprogressBg','statusInprogressText','statusLateBg','statusEarlyBg','hourlyLeaveColor'];
+        keys.forEach(function(k) { var input = document.getElementById('color'+k.charAt(0).toUpperCase()+k.slice(1)); var circle = document.getElementById('circle_'+k); if(input && circle) circle.style.backgroundColor = input.value; });
+    }
 
-    // ========== لاگین با Supabase + localStorage ==========
+    var THEMES = {
+        '🌿 سبز': { pageBg:'linear-gradient(135deg,#f0f4f0,#e8efe8)', textColor:'#1e293b', headerBg:'rgba(255,255,255,0.8)', title:'#2d5a2d', tabBg:'rgba(240,245,240,0.6)', tabText:'#5a7a5a', tabActiveBg:'rgba(90,138,90,0.1)', tabActiveText:'#3a6a3a', tabActiveBorder:'rgba(90,138,90,0.3)', cardBg:'rgba(255,255,255,0.7)', cardBorder:'rgba(100,140,100,0.15)', btnPrimaryBg:'linear-gradient(135deg,#5a8a5a,#3a6a3a)', btnPrimaryText:'#fff', btnInBg:'linear-gradient(135deg,#4aac4a,#3a8a3a)', btnOutBg:'linear-gradient(135deg,#d04040,#b03030)', statusCompletedBg:'rgba(60,180,60,0.1)', statusCompletedText:'#207020', statusInprogressBg:'rgba(60,140,200,0.1)', statusInprogressText:'#205080', statusLateBg:'rgba(200,60,60,0.08)', statusEarlyBg:'rgba(60,60,200,0.08)', hourlyLeaveColor:'#8a6a20' },
+        '☕ کافه': { pageBg:'linear-gradient(135deg,#f5f0eb,#ede0d4)', textColor:'#3e2723', headerBg:'rgba(255,250,245,0.85)', title:'#5d4037', tabBg:'rgba(240,230,220,0.6)', tabText:'#6d4c41', tabActiveBg:'rgba(141,110,99,0.12)', tabActiveText:'#4e342e', tabActiveBorder:'rgba(141,110,99,0.3)', cardBg:'rgba(255,250,245,0.75)', cardBorder:'rgba(141,110,99,0.15)', btnPrimaryBg:'linear-gradient(135deg,#8d6e63,#6d4c41)', btnPrimaryText:'#fff', btnInBg:'linear-gradient(135deg,#66bb6a,#43a047)', btnOutBg:'linear-gradient(135deg,#ef5350,#e53935)', statusCompletedBg:'rgba(102,187,106,0.1)', statusCompletedText:'#2e7d32', statusInprogressBg:'rgba(100,149,237,0.1)', statusInprogressText:'#1565c0', statusLateBg:'rgba(239,83,80,0.08)', statusEarlyBg:'rgba(100,149,237,0.08)', hourlyLeaveColor:'#f9a825' },
+        '🌊 آبی': { pageBg:'linear-gradient(135deg,#e3f2fd,#bbdefb)', textColor:'#0d2137', headerBg:'rgba(255,255,255,0.8)', title:'#0d47a1', tabBg:'rgba(227,242,253,0.6)', tabText:'#1565c0', tabActiveBg:'rgba(21,101,192,0.1)', tabActiveText:'#0d47a1', tabActiveBorder:'rgba(21,101,192,0.3)', cardBg:'rgba(255,255,255,0.7)', cardBorder:'rgba(100,149,237,0.15)', btnPrimaryBg:'linear-gradient(135deg,#1976d2,#1565c0)', btnPrimaryText:'#fff', btnInBg:'linear-gradient(135deg,#43a047,#2e7d32)', btnOutBg:'linear-gradient(135deg,#e53935,#c62828)', statusCompletedBg:'rgba(67,160,71,0.1)', statusCompletedText:'#2e7d32', statusInprogressBg:'rgba(25,118,210,0.1)', statusInprogressText:'#0d47a1', statusLateBg:'rgba(229,57,53,0.08)', statusEarlyBg:'rgba(100,149,237,0.08)', hourlyLeaveColor:'#f57f17' }
+    };
+    function renderThemeGrid() {
+        var container = document.getElementById('themeGrid');if (!container) return;
+        var html = '';var currentTheme = localStorage.getItem('tatSabz_current_theme') || '🌿 سبز';
+        for (var themeName in THEMES) { var theme = THEMES[themeName];var isActive = themeName === currentTheme;
+            html += '<div class="theme-item' + (isActive ? ' active' : '') + '" onclick="applyTheme(\'' + themeName + '\')" style="background:' + theme.pageBg + ';">';
+            html += '<div style="font-weight:700;font-size:13px;color:' + theme.title + ';">' + themeName + '</div></div>';
+        }container.innerHTML = html;
+    }
+    window.applyTheme = function(themeName) {
+        var theme = THEMES[themeName];if (!theme) return;
+        for(var k in theme){ COLORS[k] = theme[k]; }
+        localStorage.setItem('tatSabz_current_theme', themeName);saveColors(COLORS);applyAllStyles();loadColorInputs();renderThemeGrid();toast('🎨 تم ' + themeName + ' اعمال شد');
+    };
+
+    function openSheet(html){ var oldOverlay=document.querySelector('.sheet-overlay');if(oldOverlay)oldOverlay.remove(); var overlay=document.createElement('div');overlay.className='sheet-overlay active'; var sheet=document.createElement('div');sheet.className='sheet'; sheet.innerHTML='<div class="sheet-handle"></div><button class="close-btn" id="sheetCloseBtn">✕</button>'+html; overlay.appendChild(sheet);document.getElementById('app').appendChild(overlay); overlay.addEventListener('click',function(e){if(e.target===overlay)overlay.remove();}); var closeBtn=document.getElementById('sheetCloseBtn');if(closeBtn)closeBtn.addEventListener('click',function(){overlay.remove();}); return overlay; }
+    document.querySelectorAll('.config-tab').forEach(function(tab){tab.addEventListener('click',function(){document.querySelectorAll('.config-tab').forEach(function(t){t.classList.remove('active');t.style.background='rgba(240,245,240,0.6)';t.style.color='#5a7a5a';});this.classList.add('active');this.style.background='rgba(90,138,90,0.12)';this.style.color='#3a6a3a';document.querySelectorAll('.config-content').forEach(function(c){c.style.display='none';});var t=document.getElementById(this.getAttribute('data-tab'));if(t)t.style.display='block';});});
+
+    // ========== لاگین ==========
     document.getElementById('loginBtn').addEventListener('click', async function(){
         var email = document.getElementById('loginEmail').value.trim();
         var password = document.getElementById('loginPassword').value.trim();
@@ -779,70 +836,63 @@
         if(!email || !password){ err.textContent = 'ایمیل و رمز عبور را وارد کنید'; err.classList.add('show'); return; }
         err.classList.remove('show');
         
-        // تلاش برای لاگین با Supabase
-        var loggedIn = false;
+        // تلاش لاگین با Supabase
         try {
             var { data, error } = await sb.auth.signInWithPassword({ email: email, password: password });
             if(!error && data && data.session) {
+                currentUser = { userId: data.user.id, email: email, fullName: email, role: 'superadmin', permissions: PERM_KEYS, isSuperAdmin: true };
+                localStorage.setItem('tatSabz_session', JSON.stringify(currentUser));
                 await loadAllData();
-                var { data: userData } = await sb.from('users').select('*').eq('email', email).single();
-                if(!userData){
-                    userData = { id: 1, email: email, full_name: 'ادمین اصلی', role: 'superadmin', permissions: PERM_KEYS };
-                    await sb.from('users').upsert(userData);
-                }
-                currentUser = { userId: userData.id, email: userData.email, fullName: userData.full_name, role: userData.role, permissions: userData.permissions || [], isSuperAdmin: userData.role === 'superadmin' };
-                // ذخیره session توی localStorage
-                localStorage.setItem('tatSabz_session', JSON.stringify(currentUser));
-                loggedIn = true;
+                SETTINGS = loadSettings(); COLORS = loadColors(); MAX_STAGES = SETTINGS.maxStages || 3;
+                showApp(); toast('🌿 خوش آمدید');
+                return;
             }
-        } catch(e) { console.log('Supabase login failed, trying localStorage'); }
+        } catch(e) { console.log('Supabase login failed'); }
 
-        // اگه Supabase کار نکرد، از localStorage استفاده کن
-        if(!loggedIn) {
-            var localUsers = JSON.parse(localStorage.getItem('tatSabz_local_users') || '[]');
-            var found = localUsers.find(function(u){ return u.email === email && u.password === password; });
-            if(found){
-                currentUser = { userId: found.id, email: found.email, fullName: found.fullName, role: found.role, permissions: found.permissions || [], isSuperAdmin: found.role === 'superadmin' };
-                localStorage.setItem('tatSabz_session', JSON.stringify(currentUser));
-                // لود داده‌ها از localStorage
-                var localDB = localStorage.getItem('tatSabz_db_backup');
-                if(localDB){ var d = JSON.parse(localDB); DB.personnel = d.personnel || []; DB.logs = d.logs || []; DB.leaveRequests = d.leaveRequests || []; DB.manualStatus = d.manualStatus || {}; DB.checkedLogs = d.checkedLogs || {}; DB.leaveDetails = d.leaveDetails || {}; DB.nextId = d.nextId || 100; }
-                loggedIn = true;
-            } else if(email === 'admin' && password === 'admin123'){
-                // ادمین پیش‌فرض برای اولین بار
-                currentUser = { userId: 1, email: 'admin', fullName: 'ادمین اصلی', role: 'superadmin', permissions: PERM_KEYS, isSuperAdmin: true };
-                localStorage.setItem('tatSabz_session', JSON.stringify(currentUser));
-                localStorage.setItem('tatSabz_local_users', JSON.stringify([{ id: 1, email: 'admin', password: 'admin123', fullName: 'ادمین اصلی', role: 'superadmin', permissions: PERM_KEYS }]));
-                loggedIn = true;
-            }
+        // fallback: لاگین با admin
+        if(email === 'admin' && password === 'admin123'){
+            currentUser = { userId: 1, email: 'admin', fullName: 'ادمین اصلی', role: 'superadmin', permissions: PERM_KEYS, isSuperAdmin: true };
+            localStorage.setItem('tatSabz_session', JSON.stringify(currentUser));
+            loadLocalData();
+            SETTINGS = loadSettings(); COLORS = loadColors(); MAX_STAGES = SETTINGS.maxStages || 3;
+            showApp(); toast('🌿 خوش آمدید');
+            return;
         }
 
-        if(!loggedIn){ err.textContent = 'ایمیل یا رمز عبور اشتباه است'; err.classList.add('show'); return; }
-        SETTINGS = loadSettings(); COLORS = loadColors(); MAX_STAGES = SETTINGS.maxStages || 3;
-        showApp(); toast('🌿 خوش آمدید، ' + currentUser.fullName);
+        err.textContent = 'ایمیل یا رمز عبور اشتباه است'; err.classList.add('show');
     });
+
+    function loadLocalData(){
+        var d = localStorage.getItem('tatSabz_db_backup');
+        if(d){ var p = JSON.parse(d); DB.personnel = p.personnel||[]; DB.logs = p.logs||[]; DB.leaveRequests = p.leaveRequests||[]; DB.manualStatus = p.manualStatus||{}; DB.checkedLogs = p.checkedLogs||{}; DB.leaveDetails = p.leaveDetails||{}; DB.nextId = p.nextId||100; }
+    }
+
+    function saveLocalData(){
+        localStorage.setItem('tatSabz_db_backup', JSON.stringify({personnel:DB.personnel, logs:DB.logs, leaveRequests:DB.leaveRequests, manualStatus:DB.manualStatus, checkedLogs:DB.checkedLogs, leaveDetails:DB.leaveDetails, nextId:DB.nextId}));
+    }
+
+    async function loadAllData() {
+        try {
+            var p = await sb.from('personnel').select('*').order('id');
+            var l = await sb.from('logs').select('*').order('id');
+            if(p.data) DB.personnel = p.data;
+            if(l.data) DB.logs = l.data;
+            DB.nextId = DB.logs.length > 0 ? Math.max.apply(null, DB.logs.map(function(x){return x.id;})) + 1 : 100;
+        } catch(e) {}
+        saveLocalData();
+    }
 
     function showLogin(){ document.getElementById('loginScreen').style.display='flex'; document.getElementById('app').classList.remove('active'); }
     function showApp(){
-        // چک session توی localStorage
         if(!currentUser){
-            var savedSession = localStorage.getItem('tatSabz_session');
-            if(savedSession){
-                currentUser = JSON.parse(savedSession);
-                var localDB = localStorage.getItem('tatSabz_db_backup');
-                if(localDB){ var d = JSON.parse(localDB); DB.personnel = d.personnel || []; DB.logs = d.logs || []; DB.leaveRequests = d.leaveRequests || []; DB.manualStatus = d.manualStatus || {}; DB.checkedLogs = d.checkedLogs || {}; DB.leaveDetails = d.leaveDetails || {}; DB.nextId = d.nextId || 100; }
-            } else {
-                showLogin(); return;
-            }
+            var saved = localStorage.getItem('tatSabz_session');
+            if(saved){ currentUser = JSON.parse(saved); loadLocalData(); }
+            else { showLogin(); return; }
         }
         document.getElementById('loginScreen').style.display='none'; document.getElementById('app').classList.add('active');
         document.getElementById('headerName').textContent = currentUser.fullName;
         document.getElementById('headerRole').textContent = ROLE_LABELS[currentUser.role] || currentUser.role;
         document.querySelectorAll('.hamburger-dropdown .menu-item[data-view]').forEach(function(el){ el.style.display = hasUserPerm(el.dataset.view) ? 'flex' : 'none'; });
-        document.getElementById('exportDataMenuBtn').style.display = hasUserPerm('backup_export') ? 'flex' : 'none';
-        document.getElementById('importDataMenuBtn').style.display = hasUserPerm('backup_import') ? 'flex' : 'none';
-        document.getElementById('changePassMenuBtn').style.display = hasUserPerm('change_password') ? 'flex' : 'none';
-        document.getElementById('resetDataMenuBtn').style.display = hasUserPerm('reset_data') ? 'flex' : 'none';
         var tabs = document.querySelectorAll('#topTabs button[data-view]');
         tabs.forEach(function(tab){ tab.style.display = hasUserPerm(tab.dataset.view) ? 'inline-block' : 'none'; });
         document.querySelectorAll('.view').forEach(function(v){ v.classList.remove('active'); });
