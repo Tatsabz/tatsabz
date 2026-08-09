@@ -1,12 +1,37 @@
-
 <!DOCTYPE html>
-<html>
+<html lang="fa" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>تات سبز</title>
+    <style>
+        body{font-family:Tahoma;background:linear-gradient(135deg,#f0f4f0,#e8efe8);min-height:100vh;display:flex;align-items:center;justify-content:center;}
+        .box{background:white;padding:30px;border-radius:20px;text-align:center;width:90%;max-width:400px;box-shadow:0 10px 40px rgba(0,0,0,0.1);}
+        h1{color:#2d5a2d;}input{width:100%;padding:12px;margin:8px 0;border:2px solid #c8d8c8;border-radius:10px;font-size:16px;text-align:center;}
+        button{width:100%;padding:12px;background:linear-gradient(135deg,#5a8a5a,#3a6a3a);color:white;border:none;border-radius:10px;font-size:16px;cursor:pointer;margin-top:10px;}
+        .err{color:#c62828;margin-top:10px;display:none;}
+    </style>
+</head>
 <body>
-    <h1>تست</h1>
-    <button onclick="alert('کار میکنه!')">کلیک کن</button>
-    <p id="r"></p>
+<div class="box">
+    <h1>🌿 تات سبز</h1>
+    <p>سامانه حضور و غیاب</p>
+    <input id="email" type="text" placeholder="ایمیل" value="admin">
+    <input id="pass" type="password" placeholder="رمز عبور" value="admin123">
+    <button onclick="login()">🚀 ورود</button>
+    <p class="err" id="err">ایمیل یا رمز اشتباه است</p>
+</div>
 <script>
-document.getElementById('r').innerText = 'جاوااسکریپت کار میکنه';
+function login(){
+    var e=document.getElementById('email').value.trim();
+    var p=document.getElementById('pass').value.trim();
+    if(e==='admin' && p==='admin123'){
+        localStorage.setItem('tatSabz_session', JSON.stringify({userId:1,email:'admin',fullName:'ادمین اصلی',role:'superadmin',isSuperAdmin:true,permissions:['dashboard','register','register_edit','register_delete','manager','manager_check','manager_absent','manager_leave','mylogs','mylogs_filter','mylogs_print','leaverequests','leave_edit_own','leave_approve','leave_manage','personnel','personnel_add','personnel_edit','personnel_delete','users','users_add','users_edit','users_delete','reports','reports_view','reports_export_pdf','reports_export_excel','settings','settings_time','settings_leave','settings_attendance','settings_overtime','settings_appearance','settings_advanced','backup_export','backup_import','change_password','reset_data']}));
+        alert('✅ لاگین موفق!');
+    }else{
+        document.getElementById('err').style.display='block';
+    }
+}
 </script>
 </body>
 </html>
