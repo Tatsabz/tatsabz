@@ -828,40 +828,41 @@
     function openSheet(html){ var oldOverlay=document.querySelector('.sheet-overlay');if(oldOverlay)oldOverlay.remove(); var overlay=document.createElement('div');overlay.className='sheet-overlay active'; var sheet=document.createElement('div');sheet.className='sheet'; sheet.innerHTML='<div class="sheet-handle"></div><button class="close-btn" id="sheetCloseBtn">✕</button>'+html; overlay.appendChild(sheet);document.getElementById('app').appendChild(overlay); overlay.addEventListener('click',function(e){if(e.target===overlay)overlay.remove();}); var closeBtn=document.getElementById('sheetCloseBtn');if(closeBtn)closeBtn.addEventListener('click',function(){overlay.remove();}); return overlay; }
     document.querySelectorAll('.config-tab').forEach(function(tab){tab.addEventListener('click',function(){document.querySelectorAll('.config-tab').forEach(function(t){t.classList.remove('active');t.style.background='rgba(240,245,240,0.6)';t.style.color='#5a7a5a';});this.classList.add('active');this.style.background='rgba(90,138,90,0.12)';this.style.color='#3a6a3a';document.querySelectorAll('.config-content').forEach(function(c){c.style.display='none';});var t=document.getElementById(this.getAttribute('data-tab'));if(t)t.style.display='block';});});
 
-    // ========== لاگین ==========
-    document.getElementById('loginBtn').addEventListener('click', async function(){
-        var email = document.getElementById('loginEmail').value.trim();
-        var password = document.getElementById('loginPassword').value.trim();
-        var err = document.getElementById('loginError');
-        if(!email || !password){ err.textContent = 'ایمیل و رمز عبور را وارد کنید'; err.classList.add('show'); return; }
-        err.classList.remove('show');
-        
-        // تلاش لاگین با Supabase
-        try {
-            var { data, error } = await sb.auth.signInWithPassword({ email: email, password: password });
-            if(!error && data && data.session) {
-                currentUser = { userId: data.user.id, email: email, fullName: email, role: 'superadmin', permissions: PERM_KEYS, isSuperAdmin: true };
-                localStorage.setItem('tatSabz_session', JSON.stringify(currentUser));
-                await loadAllData();
-                SETTINGS = loadSettings(); COLORS = loadColors(); MAX_STAGES = SETTINGS.maxStages || 3;
-                showApp(); toast('🌿 خوش آمدید');
-                return;
-            }
-        } catch(e) { console.log('Supabase login failed'); }
-
-        // fallback: لاگین با admin
-        if(email === 'admin' && password === 'admin123'){
-            currentUser = { userId: 1, email: 'admin', fullName: 'ادمین اصلی', role: 'superadmin', permissions: PERM_KEYS, isSuperAdmin: true };
+// ========== لاگین ==========
+document.getElementById('loginBtn').addEventListener('click', async function(){
+    var email = document.getElementById('loginEmail').value.trim();
+    var password = document.getElementById('loginPassword').value.trim();
+    var err = document.getElementById('loginError');
+    if(!email || !password){ err.textContent = 'ایمیل و رمز عبور را وارد کنید'; err.classList.add('show'); return; }
+    err.classList.remove('show');
+    
+    // تلاش لاگین با Supabase
+    try {
+        var { data, error } = await sb.auth.signInWithPassword({ email: email, password: password });
+        if(!error && data && data.session) {
+            currentUser = { userId: data.user.id, email: email, fullName: email, role: 'superadmin', permissions: PERM_KEYS, isSuperAdmin: true };
             localStorage.setItem('tatSabz_session', JSON.stringify(currentUser));
-            loadLocalData();
+            await loadAllData();
             SETTINGS = loadSettings(); COLORS = loadColors(); MAX_STAGES = SETTINGS.maxStages || 3;
             showApp(); toast('🌿 خوش آمدید');
             return;
+        } else if(error) {
+            alert('❌ خطای Supabase: ' + error.message);
         }
+    } catch(e) { alert('❌ Supabase در دسترس نیست: ' + e.message); }
 
-        err.textContent = 'ایمیل یا رمز عبور اشتباه است'; err.classList.add('show');
-    });
+    // fallback: لاگین با admin
+    if(email === 'admin' && password === 'admin123'){
+        currentUser = { userId: 1, email: 'admin', fullName: 'ادمین اصلی', role: 'superadmin', permissions: PERM_KEYS, isSuperAdmin: true };
+        localStorage.setItem('tatSabz_session', JSON.stringify(currentUser));
+        loadLocalData();
+        SETTINGS = loadSettings(); COLORS = loadColors(); MAX_STAGES = SETTINGS.maxStages || 3;
+        showApp(); toast('🌿 خوش آمدید');
+        return;
+    }
 
+    err.textContent = 'ایمیل یا رمز عبور اشتباه است'; err.classList.add('show');
+});
     function loadLocalData(){
         var d = localStorage.getItem('tatSabz_db_backup');
         if(d){ var p = JSON.parse(d); DB.personnel = p.personnel||[]; DB.logs = p.logs||[]; DB.leaveRequests = p.leaveRequests||[]; DB.manualStatus = p.manualStatus||{}; DB.checkedLogs = p.checkedLogs||{}; DB.leaveDetails = p.leaveDetails||{}; DB.nextId = p.nextId||100; }
