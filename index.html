@@ -1,4 +1,3 @@
-
 <!-- ========== شروع بخش ۱ از ۲۰ ========== -->
 <!DOCTYPE html>
 <html lang="fa" dir="rtl">
@@ -54,13 +53,16 @@
         .field input:focus,.field select:focus,.field textarea:focus{border-color:#5a8a5a;box-shadow:0 0 0 3px rgba(90,138,90,0.1);background:rgba(255,255,255,0.95);}
         .field textarea{text-align:right;min-height:70px;resize:vertical;}
         .btn{padding:12px 20px;border-radius:var(--radius-sm);border:none;font-size:14px;font-weight:600;font-family:var(--font-primary);cursor:pointer;transition:var(--transition-smooth);display:inline-flex;align-items:center;justify-content:center;gap:6px;white-space:nowrap;}
-        .btn-primary{background:var(--color-btn-primary-bg);color:var(--color-btn-primary-text);box-shadow:0 4px 12px rgba(58,106,58,0.3);width:100%;}
+        .btn-primary{background:var(--color-btn-primary-bg);color:var(--color-btn-primary-text);box-shadow:0 4px 12px rgba(58,106,58,0.3);width:100%;margin-top:16px;}
         .btn-primary:hover{transform:translateY(-2px);box-shadow:0 6px 20px rgba(58,106,58,0.4);}
         .btn-ghost{background:rgba(240,245,240,0.8);color:#3a5a3a;border:1px solid #c8d8c8;}
         .btn-danger{background:rgba(200,60,60,0.1);color:#a03030;border:1px solid rgba(200,60,60,0.2);}
         .btn-sm{padding:6px 12px;font-size:12px;border-radius:var(--radius-xs);}
         .login-error{display:none;background:rgba(200,60,60,0.08);color:#a03030;padding:12px;border-radius:var(--radius-sm);font-size:13px;margin:16px 0;border:1px solid rgba(200,60,60,0.2);text-align:center;}
         .login-error.show{display:block;}
+        .login-box .field{margin-bottom:12px;}
+        .login-box .field input{padding:14px;font-size:16px;margin-bottom:4px;}
+        .login-box .btn-primary{padding:14px;font-size:16px;margin-top:8px;}
         #app{max-width:100%;min-height:100vh;display:none;flex-direction:column;}
         #app.active{display:flex;}
         header.topbar{position:sticky;top:0;z-index:50;background:var(--color-header-bg);backdrop-filter:blur(30px);padding:var(--header-pad);border-bottom:1px solid rgba(100,140,100,0.15);box-shadow:0 2px 8px rgba(0,0,0,0.03);}
@@ -487,12 +489,23 @@ var sb = supabase.createClient('https://zthmxszcmoydptofziyk.supabase.co','sb_pu
             if(!error && data.session) {
                 // لاگین موفق با Supabase
                 var { data: ud } = await sb.from('users').select('*').eq('email', email).single();
-                var role = ud ? ud.role : 'staff';
-                var perms = ud ? (ud.permissions || ['dashboard']) : ['dashboard'];
-                var name = ud ? ud.full_name : email;
+                if(!ud){
+                    // کاربر توی جدول users نیست - چک کن اولین کاربره یا نه
+                    var { count } = await sb.from('users').select('*', { count: 'exact', head: true });
+                    if(count === 0){
+                        // اولین کاربر سیستم = superadmin
+                        ud = { email: email, full_name: email, role: 'superadmin', permissions: PERM_KEYS };
+                    } else {
+                        // کاربر عادی
+                        ud = { email: email, full_name: email, role: 'staff', permissions: ['dashboard'] };
+                    }
+                    await sb.from('users').upsert(ud);
+                }
+                var role = ud.role;
+                var perms = ud.permissions || ['dashboard'];
+                var name = ud.full_name || email;
                 currentUser = { userId: data.user.id, email: email, fullName: name, role: role, permissions: perms, isSuperAdmin: role === 'superadmin' };
                 localStorage.setItem('tatSabz_session', JSON.stringify(currentUser));
-                // لود داده‌ها از Supabase
                 try {
                     var p = await sb.from('personnel').select('*');
                     var l = await sb.from('logs').select('*');
