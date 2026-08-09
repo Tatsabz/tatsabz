@@ -5,6 +5,22 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
     <title>تات سبز | سامانه حضور و غیاب</title>
+    <script>
+    // تلاش برای لود Supabase - اگه نشد، برنامه بدونش کار می‌کنه
+    var sb = null;
+    (function(){
+        var s = document.createElement('script');
+        s.src = 'https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2';
+        s.onload = function(){
+            try {
+                sb = supabase.createClient('https://zthmxszcmoydptofziyk.supabase.co','sb_publishable_mw2BQ5Fmg0v6ATaTSEV63Q_bNCyTCS2');
+                console.log('✅ Supabase connected');
+            } catch(e) { console.log('Supabase init failed'); }
+        };
+        s.onerror = function(){ console.log('⚠️ Supabase not loaded, using localStorage'); };
+        document.head.appendChild(s);
+    })();
+    </script>
     <style>
         *{margin:0;padding:0;box-sizing:border-box;}
         :root{
