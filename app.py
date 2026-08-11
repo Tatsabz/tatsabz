@@ -89,8 +89,8 @@ def check_password():
             # ============================================
             # ⬅️ اینجا نام کاربری و رمز رو عوض کن
             # ============================================
-            VALID_USERNAME = "admin"
-            VALID_PASSWORD = "MyTrading@2024!#"
+            VALID_USERNAME = "mohammadz72"
+            VALID_PASSWORD = "M727411339z@"
             
             password_hash = hashlib.sha256(password.encode()).hexdigest()
             valid_hash = hashlib.sha256(VALID_PASSWORD.encode()).hexdigest()
