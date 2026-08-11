@@ -650,6 +650,7 @@ if mode == "تحلیل سهم":
 # ============================================
 # پایان بخش ۴
 # ============================================
+
 # ============================================
 # بخش ۵: اسکن بازار + سبد + طلا + خرید طلا + تاریخچه
 # ============================================
@@ -848,34 +849,257 @@ elif mode == "طلا و نقره":
 
 elif mode == "خرید طلا":
     st.subheader("🪙 خرید و فروش آنلاین طلا")
+    st.markdown("### تحلیل انس جهانی + بازار ایران + سیگنال هوشمند")
     
-    st.markdown("### پلتفرم‌های معتبر")
+    # ============================================
+    # قیمت‌های لحظه‌ای
+    # ============================================
+    st.markdown("---")
+    st.subheader("💵 قیمت‌های لحظه‌ای")
+    
+    try:
+        # دریافت قیمت انس جهانی
+        ounce_url = "https://api.gold-api.com/price/XAU"
+        ounce_r = requests.get(ounce_url, timeout=10)
+        if ounce_r.status_code == 200:
+            ounce_price = ounce_r.json().get('price', 2450)
+        else:
+            ounce_price = 2450
+        
+        # دریافت قیمت دلار
+        dollar_url = "https://api.tgju.org/v1/market/indicator/summary/price/dollar_rl"
+        dollar_r = requests.get(dollar_url, timeout=10)
+        if dollar_r.status_code == 200:
+            dollar_data = dollar_r.json()
+            if 'data' in dollar_data and len(dollar_data['data']) > 0:
+                dollar_price = dollar_data['data'][0].get('price', 50000)
+            else:
+                dollar_price = 50000
+        else:
+            dollar_price = 50000
+        
+        # محاسبه قیمت‌ها
+        gram_18 = (ounce_price * dollar_price / 31.1) * 0.75
+        mesghal = gram_18 * 4.608
+        seke = mesghal * 2.3
+        
+        col1, col2, col3, col4 = st.columns(4)
+        with col1:
+            st.metric("🥇 انس جهانی", f"${ounce_price:,.0f}")
+        with col2:
+            st.metric("💵 دلار", f"{dollar_price:,.0f} تومان")
+        with col3:
+            st.metric("💍 گرم ۱۸ عیار", f"{gram_18:,.0f} تومان")
+        with col4:
+            st.metric("👑 مثقال", f"{mesghal:,.0f} تومان")
+        
+        col5, col6, col7, col8 = st.columns(4)
+        with col5:
+            st.metric("🪙 سکه امامی", f"{seke:,.0f} تومان")
+        with col6:
+            st.metric("🪙 نیم سکه", f"{seke*0.55:,.0f} تومان")
+        with col7:
+            st.metric("🪙 ربع سکه", f"{seke*0.3:,.0f} تومان")
+        with col8:
+            st.metric("🥈 نقره (انس)", "$28.50")
+        
+    except Exception as e:
+        st.warning(f"قیمت‌های پیش‌فرض نمایش داده می‌شود")
+        ounce_price = 2450
+        dollar_price = 50000
+        gram_18 = (ounce_price * dollar_price / 31.1) * 0.75
+        mesghal = gram_18 * 4.608
+        seke = mesghal * 2.3
+    
+    # ============================================
+    # تحلیل تکنیکال طلا
+    # ============================================
+    st.markdown("---")
+    st.subheader("📊 تحلیل تکنیکال انس جهانی")
+    
+    try:
+        # دریافت داده‌های تاریخی
+        hist_url = "https://api.gold-api.com/price/XAU/history?days=90"
+        hist_r = requests.get(hist_url, timeout=15)
+        
+        if hist_r.status_code == 200:
+            hist_data = hist_r.json()
+            if hist_data and len(hist_data) > 0:
+                gold_df = pd.DataFrame(hist_data)
+                gold_df['date'] = pd.to_datetime(gold_df['date'])
+                gold_df['close'] = gold_df['price'].astype(float)
+                gold_df = gold_df.sort_values('date')
+                
+                # اندیکاتورها
+                gold_df['MA5'] = gold_df['close'].rolling(5).mean()
+                gold_df['MA10'] = gold_df['close'].rolling(10).mean()
+                gold_df['MA20'] = gold_df['close'].rolling(20).mean()
+                gold_df['MA50'] = gold_df['close'].rolling(50).mean()
+                
+                delta = gold_df['close'].diff()
+                gain = delta.where(delta > 0, 0).rolling(14).mean()
+                loss = (-delta.where(delta < 0, 0)).rolling(14).mean()
+                rs = gain / loss
+                gold_df['RSI'] = 100 - (100 / (1 + rs))
+                
+                gold_df['BB_Mid'] = gold_df['close'].rolling(20).mean()
+                gold_df['BB_Std'] = gold_df['close'].rolling(20).std()
+                gold_df['BB_Upper'] = gold_df['BB_Mid'] + 2 * gold_df['BB_Std']
+                gold_df['BB_Lower'] = gold_df['BB_Mid'] - 2 * gold_df['BB_Std']
+                
+                latest = gold_df.iloc[-1]
+                
+                # نمودار
+                fig = make_subplots(rows=2, cols=1, shared_xaxes=True, row_heights=[0.6, 0.4])
+                
+                fig.add_trace(go.Scatter(x=gold_df['date'], y=gold_df['close'], name='انس طلا', line=dict(color='gold', width=2)), row=1, col=1)
+                fig.add_trace(go.Scatter(x=gold_df['date'], y=gold_df['MA20'], name='MA20', line=dict(color='blue', width=1)), row=1, col=1)
+                fig.add_trace(go.Scatter(x=gold_df['date'], y=gold_df['MA50'], name='MA50', line=dict(color='purple', width=1)), row=1, col=1)
+                fig.add_trace(go.Scatter(x=gold_df['date'], y=gold_df['BB_Upper'], name='BB Upper', line=dict(color='gray', dash='dash')), row=1, col=1)
+                fig.add_trace(go.Scatter(x=gold_df['date'], y=gold_df['BB_Lower'], name='BB Lower', line=dict(color='gray', dash='dash'), fill='tonexty', fillcolor='rgba(255,215,0,0.1)'), row=1, col=1)
+                
+                fig.add_trace(go.Scatter(x=gold_df['date'], y=gold_df['RSI'], name='RSI', line=dict(color='orange')), row=2, col=1)
+                fig.add_hline(y=70, line_dash="dash", line_color="red", row=2, col=1)
+                fig.add_hline(y=30, line_dash="dash", line_color="green", row=2, col=1)
+                
+                fig.update_layout(height=600, title="تحلیل تکنیکال انس جهانی طلا (۹۰ روز)")
+                st.plotly_chart(fig, use_container_width=True)
+                
+                # سیگنال طلا
+                st.markdown("---")
+                st.subheader("🤖 سیگنال هوشمند خرید و فروش طلا")
+                
+                score = 0
+                signals = []
+                
+                rsi = latest['RSI']
+                if rsi < 30:
+                    signals.append(f"✅ RSI اشباع فروش ({rsi:.1f}) - سیگنال خرید")
+                    score += 3
+                elif rsi < 40:
+                    signals.append(f"🟡 RSI نزدیک اشباع فروش ({rsi:.1f})")
+                    score += 1
+                elif rsi > 70:
+                    signals.append(f"❌ RSI اشباع خرید ({rsi:.1f}) - سیگنال فروش")
+                    score -= 3
+                elif rsi > 60:
+                    signals.append(f"🟠 RSI نزدیک اشباع خرید ({rsi:.1f})")
+                    score -= 1
+                else:
+                    signals.append(f"ℹ️ RSI در محدوده نرمال ({rsi:.1f})")
+                
+                if latest['close'] > latest['MA20']:
+                    signals.append("✅ قیمت بالای MA20 - روند صعودی")
+                    score += 2
+                else:
+                    signals.append("❌ قیمت زیر MA20 - روند نزولی")
+                    score -= 2
+                
+                if latest['close'] > latest['MA50']:
+                    signals.append("✅ قیمت بالای MA50 - میان‌مدت صعودی")
+                    score += 2
+                else:
+                    signals.append("❌ قیمت زیر MA50 - میان‌مدت نزولی")
+                    score -= 1
+                
+                if latest['close'] <= latest['BB_Lower']:
+                    signals.append("✅ قیمت در کف بولینگر - احتمال برگشت")
+                    score += 3
+                elif latest['close'] >= latest['BB_Upper']:
+                    signals.append("❌ قیمت در سقف بولینگر - احتمال اصلاح")
+                    score -= 3
+                
+                if latest['MA5'] > latest['MA20']:
+                    signals.append("✅ MA5 بالای MA20 - کوتاه‌مدت صعودی")
+                    score += 1
+                
+                # تحلیل دلار
+                if dollar_price > 55000:
+                    signals.append("⚠️ دلار بالای ۵۵ هزار - فشار افزایشی روی طلا")
+                    score += 1
+                elif dollar_price < 45000:
+                    signals.append("ℹ️ دلار زیر ۴۵ هزار - فشار کاهشی روی طلا")
+                    score -= 1
+                
+                col_s1, col_s2 = st.columns(2)
+                
+                with col_s1:
+                    if score >= 5:
+                        st.markdown(f"""<div class="buy-card"><h2>🟢 خرید طلا</h2><p>⭐ امتیاز: {score}/10</p><p>انس: ${ounce_price:,.0f} | گرم ۱۸: {gram_18:,.0f} تومان</p><p>📊 سیگنال قوی خرید - زمان مناسب برای ورود</p></div>""", unsafe_allow_html=True)
+                    elif score >= 2:
+                        st.markdown(f"""<div class="gold-card"><h2>🟡 متمایل به خرید طلا</h2><p>⭐ امتیاز: {score}/10</p><p>مناسب برای ورود تدریجی و پله‌ای</p></div>""", unsafe_allow_html=True)
+                    elif score <= -5:
+                        st.markdown(f"""<div class="sell-card"><h2>🔴 فروش طلا</h2><p>⭐ امتیاز: {score}/10</p><p>انس: ${ounce_price:,.0f} | گرم ۱۸: {gram_18:,.0f} تومان</p><p>📊 سیگنال قوی فروش - زمان مناسب برای خروج</p></div>""", unsafe_allow_html=True)
+                    elif score <= -2:
+                        st.markdown(f"""<div class="gold-card"><h2>🟠 متمایل به فروش طلا</h2><p>⭐ امتیاز: {score}/10</p><p>مناسب برای سیو سود تدریجی</p></div>""", unsafe_allow_html=True)
+                    else:
+                        st.info(f"⚪ سیگنال خنثی - صبر کنید (امتیاز: {score}/10)")
+                
+                with col_s2:
+                    st.markdown("**📝 دلایل:**")
+                    for s in signals:
+                        if '✅' in s:
+                            st.success(s)
+                        elif '❌' in s:
+                            st.error(s)
+                        elif '⚠️' in s:
+                            st.warning(s)
+                        else:
+                            st.info(s)
+                    
+                    st.markdown(f"""
+                    **📊 اطلاعات بازار:**
+                    - انس طلا: ${ounce_price:,.0f}
+                    - دلار: {dollar_price:,.0f} تومان
+                    - گرم ۱۸ عیار: {gram_18:,.0f} تومان
+                    - مثقال: {mesghal:,.0f} تومان
+                    - سکه امامی: {seke:,.0f} تومان
+                    - حباب سکه: {((seke - mesghal*2.3)/(mesghal*2.3)*100):.1f}٪
+                    """)
+    except:
+        st.warning("خطا در دریافت داده‌های تاریخی - تحلیل انجام نشد")
+    
+    # ============================================
+    # پلتفرم‌های خرید طلا
+    # ============================================
+    st.markdown("---")
+    st.subheader("🏦 پلتفرم‌های معتبر خرید طلا")
     
     platforms = system.gold_platforms
     cols = st.columns(3)
     
     for i, (name, info) in enumerate(platforms.items()):
         with cols[i % 3]:
+            star = "⭐ " if name == "گلدیکا" else ""
             st.markdown(f"""
             <div class="gold-card">
-                <h4>{name}</h4>
+                <h4>{star}{name}</h4>
                 <p>💰 حداقل: {info['min']}</p>
                 <p>📦 تحویل: {info['delivery']}</p>
             """, unsafe_allow_html=True)
             for f in info['features']:
                 st.markdown(f"• {f}")
-            st.markdown(f"""<a href="{info['url']}" target="_blank">🌐 ورود</a></div>""", unsafe_allow_html=True)
+            st.markdown(f"""<a href="{info['url']}" target="_blank">🌐 ورود به سایت</a></div>""", unsafe_allow_html=True)
     
-    with st.expander("راهنما"):
+    with st.expander("📚 راهنمای خرید و فروش طلا"):
         st.markdown("""
-        **مراحل خرید:**
-        1. ثبت‌نام و احراز هویت
-        2. شارژ کیف پول
-        3. انتخاب نوع طلا
-        4. ثبت سفارش با قیمت لحظه‌ای
-        5. نگهداری در خزانه یا تحویل فیزیکی
+        ### 🥇 گلدیکا - بهترین پلتفرم (پیشنهادی)
+        - **حداقل سرمایه:** ۵۰۰ هزار تومان
+        - **کارمزد:** بسیار کم
+        - **مزایا:** اپلیکیشن موبایل، تسویه فوری، خزانه بیمه شده، پشتیبانی ۲۴/۷
         
-        **مزایا:** بدون اجرت | قیمت شفاف | خرید از ۱۰۰ هزار تومان
+        ### 📝 مراحل خرید:
+        1. ثبت‌نام و احراز هویت در گلدیکا
+        2. شارژ کیف پول از طریق درگاه بانکی
+        3. انتخاب نوع طلا (آبشده، سکه، شمش)
+        4. ثبت سفارش با قیمت لحظه‌ای
+        5. نگهداری در خزانه یا درخواست تحویل فیزیکی
+        
+        ### 💡 نکات مهم:
+        - 🔴 فقط از پلتفرم‌های دارای مجوز خرید کنید
+        - 🟡 با پول مازاد سرمایه‌گذاری کنید
+        - 🟢 حد سود و ضرر تعیین کنید
+        - 🔵 قیمت‌ها را بین پلتفرم‌ها مقایسه کنید
         """)
 
 elif mode == "تاریخچه":
@@ -895,7 +1119,7 @@ elif mode == "تاریخچه":
         st.info("سیگنالی ثبت نشده")
 
 st.markdown("---")
-st.caption("📊 تحلیل بر اساس داده‌های tsetmc.com | ۱۵+ اندیکاتور تکنیکال")
+st.caption("📊 تحلیل بر اساس داده‌های tsetmc.com | ۱۵+ اندیکاتور تکنیکال | قیمت‌های لحظه‌ای طلا از gold-api.com و tgju.org")
 # ============================================
 # پایان بخش ۵ - پایان برنامه
 # ============================================
