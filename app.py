@@ -1286,27 +1286,24 @@ elif 'all_symbols' not in locals() or not all_symbols:
 # ============================================
 elif mode == "🔍 اسکن کل بازار":
     st.subheader("🔍 اسکن هوشمند کل بازار بورس ایران")
-    st.markdown("تحلیل تمام نمادها و یافتن بهترین فرصت‌های خرید و فروش")
+    st.markdown("### تحلیل خودکار تمام نمادها و یافتن بهترین فرصت‌های خرید و فروش")
     
-    with st.spinner("در حال دریافت لیست کامل نمادها..."):
-        all_symbols = system.get_all_symbols()
-    
-    if all_symbols:
-        st.info(f"📊 {len(all_symbols)} نماد در بازار یافت شد")
+    if st.button("🚀 شروع اسکن خودکار بازار", type="primary", use_container_width=True):
+        with st.spinner("در حال دریافت لیست کامل نمادها..."):
+            all_symbols = system.get_all_symbols()
         
-        scan_btn = st.button("🚀 شروع اسکن هوشمند", type="primary", use_container_width=True)
-        
-        if scan_btn:
+        if all_symbols:
+            st.success(f"📊 {len(all_symbols)} نماد در بازار یافت شد")
+            
             results = []
             progress_bar = st.progress(0)
             status_text = st.empty()
             
-            # تعداد نمادها برای اسکن (محدود برای سرعت)
-            scan_limit = min(200, len(all_symbols))
+            scan_limit = min(300, len(all_symbols))
             
             for i, sym in enumerate(all_symbols[:scan_limit]):
-                if i % 20 == 0:
-                    status_text.text(f"⏳ در حال تحلیل {i+1} از {scan_limit} | {sym['symbol']}")
+                if i % 10 == 0:
+                    status_text.text(f"⏳ در حال تحلیل {i+1} از {scan_limit} | آخرین: {sym['symbol']}")
                     progress_bar.progress((i+1) / scan_limit)
                 
                 df = system.get_stock_data(sym['code'], 200)
@@ -1314,7 +1311,7 @@ elif mode == "🔍 اسکن کل بازار":
                     df = system.calculate_all_indicators(df)
                     df, action, confidence, signals, details, score = system.generate_trading_signal(df)
                     
-                    if abs(score) >= min_score:
+                    if abs(score) >= 3:
                         results.append({
                             'نماد': sym['symbol'],
                             'نام': sym['name'][:40],
@@ -1323,7 +1320,6 @@ elif mode == "🔍 اسکن کل بازار":
                             'RSI': f"{df['RSI14'].iloc[-1]:.1f}",
                             'ADX': f"{df['ADX'].iloc[-1]:.1f}",
                             'حجم': f"{df['Volume_Ratio'].iloc[-1]:.1f}x",
-                            'CCI': f"{df['CCI'].iloc[-1]:.1f}",
                             'سیگنال': action,
                             'اطمینان': confidence,
                             'امتیاز': score,
@@ -1335,46 +1331,62 @@ elif mode == "🔍 اسکن کل بازار":
             if results:
                 df_results = pd.DataFrame(results).sort_values('امتیاز', ascending=False)
                 
-                # فیلتر
-                if filter_type == "فقط خرید":
-                    df_results = df_results[df_results['امتیاز'] > 0]
-                elif filter_type == "فقط فروش":
-                    df_results = df_results[df_results['امتیاز'] < 0]
+                st.markdown("---")
+                st.markdown(f"## ✅ {len(df_results)} سیگنال قوی یافت شد")
                 
-                df_results = df_results.head(max_results)
+                st.markdown("## 🟢 این سهام رو همین الان بخر:")
+                buy = df_results[df_results['امتیاز'] >= 3].head(20)
+                if not buy.empty:
+                    for idx, row in buy.iterrows():
+                        with st.container():
+                            col1, col2 = st.columns([4, 1])
+                            with col1:
+                                st.markdown(f"### {row['نماد']} - {row['نام']}")
+                                st.markdown(f"💰 {row['قیمت']} ریال | RSI: {row['RSI']} | ⭐ امتیاز: {row['امتیاز']}/20 | {row['اطمینان']}")
+                            with col2:
+                                st.markdown(f"### {row['سیگنال']}")
+                            st.divider()
+                else:
+                    st.info("در حال حاضر سیگنال خرید قوی یافت نشد")
                 
-                st.markdown(f"### ✅ {len(df_results)} سیگنال قوی یافت شد")
+                st.markdown("---")
+                st.markdown("## 🔴 این سهام رو همین الان بفروش:")
+                sell = df_results[df_results['امتیاز'] <= -3].head(20)
+                if not sell.empty:
+                    for idx, row in sell.iterrows():
+                        with st.container():
+                            col1, col2 = st.columns([4, 1])
+                            with col1:
+                                st.markdown(f"### {row['نماد']} - {row['نام']}")
+                                st.markdown(f"💰 {row['قیمت']} ریال | RSI: {row['RSI']} | ⭐ امتیاز: {row['امتیاز']}/20 | {row['اطمینان']}")
+                            with col2:
+                                st.markdown(f"### {row['سیگنال']}")
+                            st.divider()
+                else:
+                    st.info("در حال حاضر سیگنال فروش قوی یافت نشد")
                 
-                # نمودار امتیازات
+                st.markdown("---")
+                st.subheader("📊 نمودار برترین سیگنال‌ها")
                 fig = go.Figure()
-                top_20 = df_results.head(20)
+                top_30 = df_results.head(30)
                 fig.add_trace(go.Bar(
-                    x=top_20['نماد'],
-                    y=top_20['امتیاز'],
-                    marker_color=['green' if x > 0 else 'red' for x in top_20['امتیاز']],
-                    text=top_20['امتیاز'],
-                    textposition='auto',
-                    name='امتیاز'
+                    x=top_30['نماد'],
+                    y=top_30['امتیاز'],
+                    marker_color=['green' if x > 0 else 'red' for x in top_30['امتیاز']],
+                    text=top_30['امتیاز'],
+                    textposition='auto'
                 ))
-                fig.update_layout(title="برترین سیگنال‌ها", height=400)
+                fig.update_layout(height=500, title="امتیاز سیگنال نمادها")
                 st.plotly_chart(fig, use_container_width=True)
                 
-                # جداول
-                st.markdown("#### 🟢 فرصت‌های خرید")
-                buy = df_results[df_results['امتیاز'] > 0].head(15)
-                if not buy.empty:
-                    st.dataframe(buy, use_container_width=True)
-                    st.success(f"🟢 {len(buy)} نماد سیگنال خرید دارند")
+                st.markdown("---")
+                st.subheader("📋 لیست کامل سیگنال‌ها")
+                st.dataframe(df_results, use_container_width=True)
                 
-                st.markdown("#### 🔴 سیگنال فروش")
-                sell = df_results[df_results['امتیاز'] < 0].head(15)
-                if not sell.empty:
-                    st.dataframe(sell, use_container_width=True)
-                    st.error(f"🔴 {len(sell)} نماد سیگنال فروش دارند")
             else:
-                st.warning("سیگنال قوی با این تنظیمات یافت نشد")
-    else:
-        st.error("❌ خطا در دریافت اطلاعات بازار")
+                st.warning("هیچ سیگنال قوی یافت نشد. بازار در حالت تعادل است.")
+        else:
+            st.error("❌ خطا در دریافت اطلاعات بازار.")
 
 # ============================================
 # بخش مدیریت سبد
