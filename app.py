@@ -354,7 +354,7 @@ class SmartTradingSystem:
         )))
         
         return df
-        def generate_trading_signal(self, df):
+    def generate_trading_signal(self, df):
     """تولید سیگنال معاملاتی با سیستم امتیازدهی پیشرفته"""
     if df is None or len(df) < 100:
         return None, "داده کافی نیست", "نامشخص", [], {}, 0
