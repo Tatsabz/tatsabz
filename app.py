@@ -935,8 +935,8 @@ if mode == "📊 تحلیل تک سهم":
                                         with cr3:
                                             st.metric("۲۰ روز", f"{df['Return_20d'].iloc[-1]:+.2f}%")
                                         with cr4:
-                                            st.metric("۶۰ روز", f"{df['Return_60d'].iloc[-1]:+.2f}%")
-                                else:
+                                            st.metric("۶۰ روز", f"{df['Return_60d'].iloc[-1]:+.2f}%")     
+            else:
                                     st.error("❌ خطا در دریافت داده این نماد")
         else:
             st.warning("هیچ نمادی یافت نشد")
